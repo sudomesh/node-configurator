@@ -53,7 +53,7 @@
 #######################################################
 
 ORGANIZATION=sudomesh
-DOMAIN=sudomesh.org
+DOMAIN=nodeconf.local
 COUNTRY=US
 STATE=CA
 
