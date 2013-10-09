@@ -1,0 +1,53 @@
+<html>
+  <head>
+    <title>Node Config</title>
+  
+    <!-- css from professionals -->
+    <link href="/static/Flat-UI/bootstrap/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/Flat-UI/css/flat-ui.css" rel="stylesheet">
+    
+    <!-- css from me -->
+    <link href="/static/css/config.css" rel="stylesheet">
+    
+    <!-- js from professionals -->
+    <script src="/static/js/jquery-1.8.3.min.js"></script>
+    
+    <!-- js from me -->
+    <script src="/static/js/config.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      
+      <div id="node_list">
+        <!-- nodes go here -->
+        
+        <div id="node_0">
+          1337 19th Street, Oakland
+        </div>
+        
+        <div id="node_1">
+          666 Badeline Street, Oakland
+        </div>
+        
+        <div id="node_2"></div>
+        <div id="node_3"></div>
+      </div>
+    
+      <div id="node_details">
+        <form id="node_detail_form">
+          Location: <input type="text" name="node_location"><br>
+          Op name:  <input type="text" name="op_name"><br>
+          Op email: <input type="text" name="op_email"><br>
+          Op phone: <input type="text" name="op_phone"><br>
+                    <input type="button" id="node_detail_form_button">
+        </form>
+      </div>
+      
+      <div id="firmware_selector">
+        Firmware image: <input type="file"   id="firmware_input"><br>
+                        <input type="button" id="firmware_update_button">
+      </div>
+    
+    </div>
+  </body>
+</html>
