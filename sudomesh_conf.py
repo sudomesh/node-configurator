@@ -12,12 +12,22 @@ from twisted.web.static   import File
 class SudoNode:
   'Model of a simple SudoMesh node'
 
-  def __init__(self, op_name, geo_location):
-    self.op_name = op_name
+  def __init__(self, hardware_model, firmware_version, geo_location, op_name, op_email, op_phone):
+    self.hardware_model = hardware_model
+    self.firmware_version = firmware_version
     self.geo_location = geo_location
+    self.op_name = op_name
+    self.op_email = op_email
+    self.op_phone = op_phone
 
   def toJSON(self):
-    return json.dumps([ {'op_name' : self.op_name, 'geo_location' : self.geo_location } ]);
+    return json.dumps([{
+                         'hardware_model'   : self.hardware_model,
+                         'firmware_version' : self.firmware_version,
+                         'geo_location'     : self.geo_location,
+                         'op_name'          : self.op_name,
+                         'op_email'         : self.op_email,
+                         'op_phone'         : self.op_phone }]);
 
 class NodeConfStaticServer(Resource):
   'Subclass Resource to serve static node configuration resources'
@@ -47,7 +57,13 @@ class FakeNodePopulatorThread(threading.Thread):
     while self.running:
       time.sleep(5)
       if self.has_server :
-        myNode = SudoNode(self.rand_string(), self.rand_string(12))
+        myNode = SudoNode("Ubiquity nano-station",
+                          "SudoNode v0.5",
+                          "Oakland, CA",
+                          self.rand_string(),
+                          self.rand_string() + "@" + self.rand_string() + ".org",
+                          "1-555-555-1337")
+
         self.webSocketServer.sendMessage(myNode.toJSON(), False)
 
     return
