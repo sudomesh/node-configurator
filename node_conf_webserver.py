@@ -14,13 +14,15 @@ from autobahn.websocket   import WebSocketServerFactory, \
 
 from sudomesh_conf        import FakeNodePopulatorThread
 
+CONST_WEBSOCKET_PORT  = 9000;
+CONST_WEB_SERVER_PORT = 8080;
 CONST_STATIC_NAME     = "static"
 
 # Implementation specific constants.
 CONST_STATIC_DIR_PATH = "./static_web"
 CONST_INDEX_FILE_NAME = "config.html"
 
-class NodeConfStaticServer(Resource):
+class NodeConfStaticResources(Resource):
   'Subclass Resource to serve static node configuration resources'
 
   def getChild(self, name, request):
@@ -35,7 +37,7 @@ class NodeConfWebSocketProtocol(WebSocketServerProtocol):
   def onOpen(self):
     # send fake nodes over the WebSocket
     self.nodePopulator = FakeNodePopulatorThread()
-    self.nodePopulator.setServer(self)
+    self.nodePopulator.setup(self, 5)
     self.nodePopulator.start()
 
   def onMessage(self, msg, binary):
@@ -52,14 +54,14 @@ class NodeConfWebSocketProtocol(WebSocketServerProtocol):
 log.startLogging(sys.stdout)
 
 # create the WebSocket server.
-webSocketFactory = WebSocketServerFactory("ws://localhost:9000", debug=False)
+webSocketFactory = WebSocketServerFactory("ws://localhost:%d" % CONST_WEBSOCKET_PORT, debug=False)
 webSocketFactory.protocol = NodeConfWebSocketProtocol
 listenWS(webSocketFactory)
 
 # create the HTTP server.
-resource = NodeConfStaticServer()
-factory = Site(resource)
+nodeHttpResources = NodeConfStaticResources()
+webServerFactory = Site(nodeHttpResources)
+reactor.listenTCP(CONST_WEB_SERVER_PORT, webServerFactory)
 
 # start the servers.
-reactor.listenTCP(8880, factory)
 reactor.run()
