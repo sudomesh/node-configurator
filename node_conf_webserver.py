@@ -17,7 +17,7 @@ from autobahn.websocket   import WebSocketServerFactory, \
                                  WebSocketServerProtocol, \
                                  listenWS
 
-from sudomesh_conf        import MeshNodeFactory
+from mesh_util            import MeshNodeFactory
 
 CONST_WEBSOCKET_PORT  = 9000;
 CONST_WEB_SERVER_PORT = 8080;

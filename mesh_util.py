@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-import json
 import string
 import random
 
