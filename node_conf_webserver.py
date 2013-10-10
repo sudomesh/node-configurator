@@ -1,29 +1,45 @@
 #!/usr/bin/python
 
-import threading
-import string
-import random
+import sys
 
 from twisted.web.server import Site
 from twisted.internet   import reactor
+from twisted.python     import log
 
-from sudomesh_conf import NodeConfStaticServer, SudoNode
+from autobahn.websocket import WebSocketServerFactory, \
+                               WebSocketServerProtocol, \
+                               listenWS
 
-# create and run the server
+from sudomesh_conf      import NodeConfStaticServer, \
+                               FakeNodePopulatorThread
+
+class EchoServerProtocol(WebSocketServerProtocol):
+
+  def onOpen(self):
+    # send fake nodes over the WebSocket
+    self.nodePopulator = FakeNodePopulatorThread()
+    self.nodePopulator.setServer(self)
+    self.nodePopulator.start()
+
+  def onMessage(self, msg, binary):
+    print "sending echo:", msg
+    self.sendMessage(msg, binary)
+
+  def connectionLost(self, reason):
+    self.nodePopulator.finish()
+    WebSocketServerProtocol.connectionLost(self, reason)
+
+log.startLogging(sys.stdout)
+
+# create WebSocket server.
+webSocketFactory = WebSocketServerFactory("ws://localhost:9000", debug=False)
+webSocketFactory.protocol = EchoServerProtocol
+listenWS(webSocketFactory)
+
+# create http server.
 resource = NodeConfStaticServer()
 factory = Site(resource)
+
+# start the servers.
 reactor.listenTCP(8880, factory)
 reactor.run()
-
-class ThreadClass(threading.Thread):
-  def rand_string(self, size=6, chars=string.ascii_uppercase + string.digits):
-    return ''.join(random.choice(chars) for x in range(size))
-
-  def run(self):
-    myNode = SudoNode(self.rand_string(), self.rand_string(12))
-    print myNode.toJSON()
-    return
-
-for i in range(2):
-  t = ThreadClass()
-  t.start()
