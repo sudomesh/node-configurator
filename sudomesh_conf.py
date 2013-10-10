@@ -1,13 +1,18 @@
 #!/usr/bin/python
 
 import json
-import threading
-import time
-import random
 import string
+import random
 
 class MeshNode:
   'Model of a simple mesh node'
+
+  CONST_HARDWARE_MODEL_KEY   = 'hardware_model'
+  CONST_FIRMWARE_VERSION_KEY = 'firmware_version'
+  CONST_GEO_LOCATION_KEY     = 'geo_location'
+  CONST_OP_NAME_KEY          = 'op_name'
+  CONST_OP_EMAIL_KEY         = 'op_email'
+  CONST_OP_PHONE_KEY         = 'op_phone'
 
   def __init__(self, hardware_model, firmware_version, geo_location, op_name, op_email, op_phone):
     self.hardware_model = hardware_model
@@ -17,41 +22,27 @@ class MeshNode:
     self.op_email = op_email
     self.op_phone = op_phone
 
-  def toJSON(self):
-    return json.dumps([{
-                         'hardware_model'   : self.hardware_model,
-                         'firmware_version' : self.firmware_version,
-                         'geo_location'     : self.geo_location,
-                         'op_name'          : self.op_name,
-                         'op_email'         : self.op_email,
-                         'op_phone'         : self.op_phone }]);
+  def toDict(self):
+    return {
+              self.CONST_HARDWARE_MODEL_KEY   : self.hardware_model,
+              self.CONST_FIRMWARE_VERSION_KEY : self.firmware_version,
+              self.CONST_GEO_LOCATION_KEY     : self.geo_location,
+              self.CONST_OP_NAME_KEY          : self.op_name,
+              self.CONST_OP_EMAIL_KEY         : self.op_email,
+              self.CONST_OP_PHONE_KEY         : self.op_phone }
 
-class FakeNodePopulatorThread(threading.Thread):
-  'Subclass Thread to send fake nodes over a WebSocket at an interval'
+class MeshNodeFactory:
+  'Class to generate fake MeshNode objects'
 
-  def setup(self, webSocketServer, interval):
-    self._has_server = True
-    self._interval = interval
-    self._webSocketServer = webSocketServer
-
-  def _rand_string(self, size=6, chars=string.ascii_uppercase + string.digits):
+  @staticmethod
+  def _rand_string(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for x in range(size))
 
-  def run(self):
-    self._running = True
-
-    while self._running:
-      if self._has_server :
-        time.sleep(self._interval)
-        myNode = MeshNode("Ubiquity nano-station",
-                          "SudoNode v0.5",
-                          "Oakland, CA",
-                          self._rand_string(),
-                          self._rand_string() + "@" + self._rand_string() + ".org",
-                          "1-555-555-1337")
-        self._webSocketServer.sendMessage(myNode.toJSON(), False)
-
-    return
-
-  def finish(self):
-    self._running = False
+  @staticmethod
+  def buildFake():
+    return MeshNode("Ubiquity nano-station",
+                    "SudoNode v0.5",
+                    "Oakland, CA",
+                    MeshNodeFactory._rand_string(),
+                    MeshNodeFactory._rand_string() + "@" + MeshNodeFactory._rand_string() + ".org",
+                    "1-555-555-1337")

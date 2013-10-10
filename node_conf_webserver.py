@@ -1,6 +1,11 @@
 #!/usr/bin/python
 
 import sys
+import threading
+import time
+import json
+
+from random import randint
 
 from twisted.python       import log
 from twisted.internet     import reactor
@@ -12,7 +17,7 @@ from autobahn.websocket   import WebSocketServerFactory, \
                                  WebSocketServerProtocol, \
                                  listenWS
 
-from sudomesh_conf        import FakeNodePopulatorThread
+from sudomesh_conf        import MeshNodeFactory
 
 CONST_WEBSOCKET_PORT  = 9000;
 CONST_WEB_SERVER_PORT = 8080;
@@ -31,18 +36,71 @@ class NodeConfStaticResources(Resource):
 
     return File(CONST_STATIC_DIR_PATH + "/" + CONST_INDEX_FILE_NAME)
 
+class FakeNodePopulatorThread(threading.Thread):
+  'Subclass Thread to send fake actions over a WebSocket at an interval'
+
+  def setup(self, webSocketServer, interval):
+    self._has_server = True
+    self._connect_node = True
+    self._interval = interval
+    self._webSocketServer = webSocketServer
+
+  def _doFakeStuff(self):
+    fakeNode = MeshNodeFactory.buildFake()
+
+    if self._connect_node:
+      self._webSocketServer.sendAction(NodeConfWebSocketProtocol.CONST_ACTION_NODE_CONNECTED, randint(0, 100), fakeNode)
+    else:
+      self._webSocketServer.sendAction(NodeConfWebSocketProtocol.CONST_ACTION_NODE_DISCONNECTED, randint(0, 100), fakeNode)
+    self._connect_node = not self._connect_node
+
+  def run(self):
+    self._running = True
+
+    while self._running:
+      if self._has_server:
+        time.sleep(self._interval)
+        self._doFakeStuff()
+
+  def finish(self):
+    self._running = False
+
 class NodeConfWebSocketProtocol(WebSocketServerProtocol):
   'Subclass WebSocketServerProtocol configure mesh nodes over WebSocket'
 
+  CONST_ACTION_KEY               = 'action'
+  CONST_NODE_ID_KEY              = 'node_id'
+  CONST_NODE_OBJECT_KEY          = 'node_obj'
+
+  CONST_ACTION_NODE_CONNECTED    = 'node_connected'
+  CONST_ACTION_NODE_DISCONNECTED = 'node_disconnected'
+  CONST_ACTION_NODE_CONFIGURE    = 'node_configure'
+
+  def sendAction(self, action, node_id = -1, meshNode = -1):
+    actionArray = {
+      NodeConfWebSocketProtocol.CONST_ACTION_KEY      : action,
+      NodeConfWebSocketProtocol.CONST_NODE_ID_KEY     : node_id,
+    }
+    if meshNode != -1:
+      actionArray[NodeConfWebSocketProtocol.CONST_NODE_OBJECT_KEY] = meshNode.toDict()
+
+    self.sendMessage(json.dumps(actionArray), False)
+
   def onOpen(self):
-    # send fake nodes over the WebSocket
+    # send fake actions over the WebSocket every 5 seconds
     self._nodePopulator = FakeNodePopulatorThread()
     self._nodePopulator.setup(self, 5)
     self._nodePopulator.start()
 
+  def _process_message(self, message):
+    if message == self.CONST_ACTION_NODE_CONFIGURE:
+      print "client wants us to configure node w/ " + message
+    else:
+      print "received unexpected message from client: " + message
+
   def onMessage(self, msg, binary):
     if not binary:
-      print "received message: " + msg
+      self._process_message(msg)
 
   def connectionLost(self, reason):
     self._nodePopulator.finish()
