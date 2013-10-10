@@ -2,18 +2,35 @@
 
 import sys
 
-from twisted.web.server import Site
-from twisted.internet   import reactor
-from twisted.python     import log
+from twisted.python       import log
+from twisted.internet     import reactor
+from twisted.web.server   import Site
+from twisted.web.resource import Resource
+from twisted.web.static   import File
 
-from autobahn.websocket import WebSocketServerFactory, \
-                               WebSocketServerProtocol, \
-                               listenWS
+from autobahn.websocket   import WebSocketServerFactory, \
+                                 WebSocketServerProtocol, \
+                                 listenWS
 
-from sudomesh_conf      import NodeConfStaticServer, \
-                               FakeNodePopulatorThread
+from sudomesh_conf        import FakeNodePopulatorThread
 
-class EchoServerProtocol(WebSocketServerProtocol):
+CONST_STATIC_NAME     = "static"
+
+# Implementation specific constants.
+CONST_STATIC_DIR_PATH = "./static_web"
+CONST_INDEX_FILE_NAME = "config.html"
+
+class NodeConfStaticServer(Resource):
+  'Subclass Resource to serve static node configuration resources'
+
+  def getChild(self, name, request):
+    if name == CONST_STATIC_NAME:
+      return File(CONST_STATIC_DIR_PATH)
+
+    return File(CONST_STATIC_DIR_PATH + "/" + CONST_INDEX_FILE_NAME)
+
+class NodeConfWebSocketProtocol(WebSocketServerProtocol):
+  'Subclass WebSocketServerProtocol configure mesh nodes over WebSocket'
 
   def onOpen(self):
     # send fake nodes over the WebSocket
@@ -29,14 +46,17 @@ class EchoServerProtocol(WebSocketServerProtocol):
     self.nodePopulator.finish()
     WebSocketServerProtocol.connectionLost(self, reason)
 
+
+
+
 log.startLogging(sys.stdout)
 
-# create WebSocket server.
+# create the WebSocket server.
 webSocketFactory = WebSocketServerFactory("ws://localhost:9000", debug=False)
-webSocketFactory.protocol = EchoServerProtocol
+webSocketFactory.protocol = NodeConfWebSocketProtocol
 listenWS(webSocketFactory)
 
-# create http server.
+# create the HTTP server.
 resource = NodeConfStaticServer()
 factory = Site(resource)
 

@@ -6,11 +6,8 @@ import time
 import random
 import string
 
-from twisted.web.resource import Resource
-from twisted.web.static   import File
-
-class SudoNode:
-  'Model of a simple SudoMesh node'
+class MeshNode:
+  'Model of a simple mesh node'
 
   def __init__(self, hardware_model, firmware_version, geo_location, op_name, op_email, op_phone):
     self.hardware_model = hardware_model
@@ -29,23 +26,12 @@ class SudoNode:
                          'op_email'         : self.op_email,
                          'op_phone'         : self.op_phone }]);
 
-class NodeConfStaticServer(Resource):
-  'Subclass Resource to serve static node configuration resources'
-
-  CONST_STATIC_NAME     = "static"
-  CONST_STATIC_DIR_PATH = "./static_web"
-  CONST_INDEX_FILE_NAME = "config.html"
-
-  def getChild(self, name, request):
-    if name == self.CONST_STATIC_NAME:
-      return File(self.CONST_STATIC_DIR_PATH)
-
-    return File(self.CONST_STATIC_DIR_PATH + "/" + self.CONST_INDEX_FILE_NAME)
-
 class FakeNodePopulatorThread(threading.Thread):
+  'Subclass Thread to send fake nodes over a WebSocket at an interval'
 
-  def setServer(self, webSocketServer):
+  def setup(self, webSocketServer, interval):
     self.has_server = True
+    self.interval = interval
     self.webSocketServer = webSocketServer
 
   def rand_string(self, size=6, chars=string.ascii_uppercase + string.digits):
@@ -55,15 +41,14 @@ class FakeNodePopulatorThread(threading.Thread):
     self.running = True
 
     while self.running:
-      time.sleep(5)
       if self.has_server :
-        myNode = SudoNode("Ubiquity nano-station",
+        time.sleep(self.interval)
+        myNode = MeshNode("Ubiquity nano-station",
                           "SudoNode v0.5",
                           "Oakland, CA",
                           self.rand_string(),
                           self.rand_string() + "@" + self.rand_string() + ".org",
                           "1-555-555-1337")
-
         self.webSocketServer.sendMessage(myNode.toJSON(), False)
 
     return
