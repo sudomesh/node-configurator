@@ -30,28 +30,28 @@ class FakeNodePopulatorThread(threading.Thread):
   'Subclass Thread to send fake nodes over a WebSocket at an interval'
 
   def setup(self, webSocketServer, interval):
-    self.has_server = True
-    self.interval = interval
-    self.webSocketServer = webSocketServer
+    self._has_server = True
+    self._interval = interval
+    self._webSocketServer = webSocketServer
 
-  def rand_string(self, size=6, chars=string.ascii_uppercase + string.digits):
+  def _rand_string(self, size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for x in range(size))
 
   def run(self):
-    self.running = True
+    self._running = True
 
-    while self.running:
-      if self.has_server :
-        time.sleep(self.interval)
+    while self._running:
+      if self._has_server :
+        time.sleep(self._interval)
         myNode = MeshNode("Ubiquity nano-station",
                           "SudoNode v0.5",
                           "Oakland, CA",
-                          self.rand_string(),
-                          self.rand_string() + "@" + self.rand_string() + ".org",
+                          self._rand_string(),
+                          self._rand_string() + "@" + self._rand_string() + ".org",
                           "1-555-555-1337")
-        self.webSocketServer.sendMessage(myNode.toJSON(), False)
+        self._webSocketServer.sendMessage(myNode.toJSON(), False)
 
     return
 
   def finish(self):
-    self.running = False
+    self._running = False

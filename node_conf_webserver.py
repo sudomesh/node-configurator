@@ -36,16 +36,16 @@ class NodeConfWebSocketProtocol(WebSocketServerProtocol):
 
   def onOpen(self):
     # send fake nodes over the WebSocket
-    self.nodePopulator = FakeNodePopulatorThread()
-    self.nodePopulator.setup(self, 5)
-    self.nodePopulator.start()
+    self._nodePopulator = FakeNodePopulatorThread()
+    self._nodePopulator.setup(self, 5)
+    self._nodePopulator.start()
 
   def onMessage(self, msg, binary):
-    print "sending echo:", msg
-    self.sendMessage(msg, binary)
+    if not binary:
+      print "received message: " + msg
 
   def connectionLost(self, reason):
-    self.nodePopulator.finish()
+    self._nodePopulator.finish()
     WebSocketServerProtocol.connectionLost(self, reason)
 
 
