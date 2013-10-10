@@ -1,14 +1,30 @@
+var CONST_INTERVAL_MS = 5000;
+
+var last_timer;
+var wsuri = "ws://localhost:9000";
+var sock = new WebSocket(wsuri);
+  
+function send_action() {
+  fakeNode = {
+    "hardware_model"   : "Ubiquity nano-station",
+    "firmware_version" : "SudoNode v0.5",
+    "geo_location"     : "Oakland, CA",
+    "op_name"          : "A Cool Person",
+    "op_email"         : "coolpeer@idk.org",
+    "op_phone"         : "1-555-555-1337"
+  };
+  
+  fakeAction = {
+    "action"   : "node_configure",
+    "node_id"  : Math.floor(Math.random() * 100),
+    "node_obj" : fakeNode
+  };
+  
+  sock.send(JSON.stringify(fakeAction));
+}
+
 $(document).ready(function() {
   console.log("mesh the planet!");
-  
-  var sock = null;
-  var wsuri = "ws://localhost:9000";
-  
-  sock = new WebSocket(wsuri);
-  
-  function send(msg) {
-    sock.send(msg);
-  };
   
   sock.onopen = function() {
     console.log("connected to " + wsuri);
@@ -20,5 +36,6 @@ $(document).ready(function() {
   
   sock.onmessage = function(e) {
     console.log("message received: " + e.data);
+    send_action();
   }
 });

@@ -30,12 +30,27 @@ class MeshNode:
               self.CONST_OP_EMAIL_KEY         : self.op_email,
               self.CONST_OP_PHONE_KEY         : self.op_phone }
 
+  def toString(self):
+    return self.hardware_model + ", " + self.firmware_version +  ", " + \
+           self.geo_location + ", " + self.op_name + ", " + self.op_email + ", " + self.op_phone
+
 class MeshNodeFactory:
   'Class to generate fake MeshNode objects'
 
   @staticmethod
   def _rand_string(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for x in range(size))
+
+  @staticmethod
+  def buildFromArray(nodeArray):
+    return MeshNode(
+      nodeArray[MeshNode.CONST_HARDWARE_MODEL_KEY],
+      nodeArray[MeshNode.CONST_FIRMWARE_VERSION_KEY],
+      nodeArray[MeshNode.CONST_GEO_LOCATION_KEY],
+      nodeArray[MeshNode.CONST_OP_NAME_KEY],
+      nodeArray[MeshNode.CONST_OP_EMAIL_KEY],
+      nodeArray[MeshNode.CONST_OP_PHONE_KEY]
+    )
 
   @staticmethod
   def buildFake():

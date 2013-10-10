@@ -93,10 +93,18 @@ class NodeConfWebSocketProtocol(WebSocketServerProtocol):
     self._nodePopulator.start()
 
   def _process_message(self, message):
-    if message == self.CONST_ACTION_NODE_CONFIGURE:
-      print "client wants us to configure node w/ " + message
-    else:
-      print "received unexpected message from client: " + message
+    try:
+      action = json.loads(message)
+      node_id = action[NodeConfWebSocketProtocol.CONST_NODE_ID_KEY]
+      nodeObj = MeshNodeFactory.buildFromArray(action[NodeConfWebSocketProtocol.CONST_NODE_OBJECT_KEY])
+
+      if action[NodeConfWebSocketProtocol.CONST_ACTION_KEY] == self.CONST_ACTION_NODE_CONFIGURE:
+        print "client requests configure of node %d using: " % node_id + nodeObj.toString()
+      else:
+        print "received unrecognized action from client: " + message
+
+    except:
+      print "JSON decode error for received client message: " + message
 
   def onMessage(self, msg, binary):
     if not binary:
