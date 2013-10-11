@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
-from twisted.internet        import ssl, \
-                                    reactor, \
-                                    protocol
-from twisted.protocols.basic import LineReceiver
+from twisted.internet          import ssl, \
+                                      reactor, \
+                                      protocol
 
-from mesh_util               import NodeProtocol
+from twisted.protocols.basic   import LineReceiver
+
+from mesh_util                 import NodeProtocol
 
 '''
 
@@ -19,8 +20,6 @@ from mesh_util               import NodeProtocol
   The idea is that the node configuration server
   will be controlled by a web interface, and to allow
   that, it needs to act as a web server as well.
-
-  Rhodey is currently working on the web gui.
 
 '''
 
@@ -43,7 +42,6 @@ class ChainedOpenSSLContextFactory(ssl.DefaultOpenSSLContextFactory):
         ctx.use_privatekey_file(self.privateKeyFileName)
         self._context = ctx
 
-
 class NodeConfig(LineReceiver):
     """Node Configurator protocol"""
     delimiter = "\n"
@@ -54,20 +52,27 @@ class NodeConfig(LineReceiver):
         self.transport.write("this is a hest\n")
 
     def connectionMade(self):
-        print "Got connection!"
+        addSocket(self)
+
+    def connectionLost(self, reason):
+        removeSocket(self)
 
     def lineReceived(self, line):
         if line == NodeProtocol.COMMAND_NODE_WANTS_NEW_CONFIG:
             self.sendConfigCommand()
         else:
-            print "Unknown request: " + line
-            print "Client disconnected"
+            print "Received unrecognized command from Socket Client: " + line
             self.transport.loseConnection()
 
     def rawDataReceived(self, data):
         "As soon as any data is received, write it back."
         self.transport.write(data)
 
+def addSocket(nodeSocket):
+    print "add socket stub fileno() %d " % nodeSocket.transport.file.fileno()
+
+def removeSocket(nodeSocket):
+    print "remove socket stub fileno() %d " % nodeSocket.transport.file.fileno()
 
 def start():
 

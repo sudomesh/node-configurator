@@ -213,8 +213,8 @@ function receive_config(conn)
   end
   
   -- TODO allow more than one file
-  if not string.find(data, "CONFIG:1") == 1 then
-     print("Error: Got invalid response. Expecting 'CONFIG' got: "..data)
+  if not string.find(data, "node::set_config") == 1 then
+     print("Error: Got invalid response. Expecting 'node::set_config' got: "..data)
      return false
   end
 
@@ -222,7 +222,7 @@ function receive_config(conn)
 end
 
 function get_config(conn)
-  conn:send("GIMME_CONFIG\n")
+  conn:send("node::get_config\n")
   return receive_config(conn)
 end
 
