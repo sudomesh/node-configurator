@@ -15,7 +15,7 @@ function send_action() {
   };
   
   fakeAction = {
-    "action"   : "node_configure",
+    "action"   : "node::set_config",
     "node_id"  : Math.floor(Math.random() * 100),
     "node_obj" : fakeNode
   };

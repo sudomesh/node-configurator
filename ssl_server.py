@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 
-from twisted.internet import ssl, reactor, protocol
+from twisted.internet        import ssl, \
+                                    reactor, \
+                                    protocol
 from twisted.protocols.basic import LineReceiver
+
+from mesh_util               import NodeProtocol
 
 '''
 
@@ -45,8 +49,7 @@ class NodeConfig(LineReceiver):
     delimiter = "\n"
 
     def sendConfigCommand(self):
-
-        self.sendLine("CONFIG:1")
+        self.sendLine(NodeProtocol.COMMAND_NODE_SET_CONFIG)
         self.sendLine("FILE:0003:foo:fee77fce8a77d5c5bc8948693d48f75f:0000000000000015")
         self.transport.write("this is a hest\n")
 
@@ -54,13 +57,12 @@ class NodeConfig(LineReceiver):
         print "Got connection!"
 
     def lineReceived(self, line):
-        if line == "GIMME_CONFIG":
+        if line == NodeProtocol.COMMAND_NODE_WANTS_NEW_CONFIG:
             self.sendConfigCommand()
         else:
             print "Unknown request: " + line
             print "Client disconnected"
             self.transport.loseConnection()
-
 
     def rawDataReceived(self, data):
         "As soon as any data is received, write it back."
