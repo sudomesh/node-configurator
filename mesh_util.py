@@ -108,9 +108,9 @@ class FakeNodePopulatorThread(threading.Thread):
     fakeNode = MeshNodeFactory.buildFake()
 
     if self._connect_node:
-      self._webSocketServer.sendAction(NodeProtocol.UI_NODE_CONNECTED, randint(0, 100), fakeNode)
+      self._webSocketServer.sendCommand(NodeProtocol.UI_NODE_CONNECTED, randint(0, 100), fakeNode)
     else:
-      self._webSocketServer.sendAction(NodeProtocol.UI_NODE_DISCONNECTED, randint(0, 100), fakeNode)
+      self._webSocketServer.sendCommand(NodeProtocol.UI_NODE_DISCONNECTED, randint(0, 100), fakeNode)
     self._connect_node = not self._connect_node
 
   def run(self):

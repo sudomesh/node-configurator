@@ -4,7 +4,7 @@ var last_timer;
 var wsuri = "ws://localhost:9000";
 var sock = new WebSocket(wsuri);
   
-function send_action() {
+function send_command() {
   fakeNode = {
     "hardware_model"   : "Ubiquity nano-station",
     "firmware_version" : "SudoNode v0.5",
@@ -14,13 +14,13 @@ function send_action() {
     "op_phone"         : "1-555-555-1337"
   };
   
-  fakeAction = {
-    "action"   : "node::set_config",
-    "node_id"  : Math.floor(Math.random() * 100),
-    "node_obj" : fakeNode
+  fakeCommand = {
+    "command"   : "node::set_config",
+    "socket_id" : Math.floor(Math.random() * 100),
+    "node_obj"  : fakeNode
   };
   
-  sock.send(JSON.stringify(fakeAction));
+  sock.send(JSON.stringify(fakeCommand));
 }
 
 $(document).ready(function() {
@@ -36,6 +36,6 @@ $(document).ready(function() {
   
   sock.onmessage = function(e) {
     console.log("message received: " + e.data);
-    send_action();
+    send_command();
   }
 });
