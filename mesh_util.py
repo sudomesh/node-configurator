@@ -24,7 +24,7 @@ class NodeProtocol:
     COMMAND_NODE_HAS_NEW_CONFIG   = "node::has_new_config"
     COMMAND_NODE_WANTS_NEW_CONFIG = "node::wants_new_config"
 
-    COMMAND_NODE_GET_CONFIG   = "node::get_config"
+    COMMAND_NODE_HELLO        = "node::hello"
     COMMAND_NODE_SET_CONFIG   = "node::set_config"
     COMMAND_NODE_SET_FIRMWARE = "node::set_firmware"
 

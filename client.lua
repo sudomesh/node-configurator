@@ -6,7 +6,7 @@ require("string")
 
 --[[
 
-  This program is in the early stages.
+  This program is in its early stages.
 
   The idea is that it will be auto-started on nodes
   when they boot after being flashed with the sudomesh
@@ -61,7 +61,7 @@ function connect()
   local params
 
   local conn = socket.tcp()
-  conn:connect("nodeconf.local", 8000)
+  conn:connect("nodeconf.local", 1337)
 
 
   local params = {
@@ -221,8 +221,8 @@ function receive_config(conn)
   return receive_file(conn)
 end
 
-function get_config(conn)
-  conn:send("node::get_config\n")
+function say_hello(conn)
+  conn:send("node::hello\n")
   return receive_config(conn)
 end
 
@@ -236,7 +236,7 @@ if not c then
    os.exit(-1);
 end
 -- receive the configuration from the server
-get_config(c)
+say_hello(c)
 
 
 c:close()

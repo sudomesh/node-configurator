@@ -3,6 +3,8 @@
 import sys
 import json
 
+from random               import randint
+
 from twisted.python     import log
 from twisted.internet   import reactor, ssl, protocol
 from twisted.web.server import Site
@@ -42,10 +44,11 @@ class ConfWebSocketProtocol(WebSocketServerProtocol):
         self.sendMessage(json.dumps(command_array), False)
 
     def onOpen(self):
+        self.factory.gotConnection(self)
         # send fake actions over the WebSocket every 5 seconds
-        self._nodePopulator = FakeNodePopulatorThread()
-        self._nodePopulator.setup(self, 5)
-        self._nodePopulator.start()
+#        self._nodePopulator = FakeNodePopulatorThread()
+#        self._nodePopulator.setup(self, 5)
+#        self._nodePopulator.start()
 
     def _process_message(self, message):
         try:
@@ -67,6 +70,7 @@ class ConfWebSocketProtocol(WebSocketServerProtocol):
             self._process_message(msg)
 
     def connectionLost(self, reason):
+        self.factory.lostConnection(self)
         self._nodePopulator.finish()
         WebSocketServerProtocol.connectionLost(self, reason)
 
@@ -94,9 +98,15 @@ class ChainedOpenSSLContextFactory(ssl.DefaultOpenSSLContextFactory):
         ctx.use_privatekey_file(self.privateKeyFileName)
         self._context = ctx
 
-class NodeConfig(LineReceiver):
+
+class NodeProtocol(LineReceiver):
     """Node Configurator protocol"""
     delimiter = "\n"
+
+    def nodeConnected(self):
+        print "Node connected"
+        nodeData = MeshNodeFactory.buildFake()
+        self.factory.nodeListChanged(nodeData)
 
     def sendConfigCommand(self):
         self.sendLine(NodeProtocol.COMMAND_NODE_SET_CONFIG)
@@ -104,14 +114,18 @@ class NodeConfig(LineReceiver):
         self.transport.write("this is a hest\n")
 
     def connectionMade(self):
-        addSocket(self)
+        print "Got connection"
+#        addSocket(self)
 
     def connectionLost(self, reason):
-        removeSocket(self)
+        print "Lost connection"
+#        removeSocket(self)
 
     def lineReceived(self, line):
-        if line == NodeProtocol.COMMAND_NODE_WANTS_NEW_CONFIG:
-            self.sendConfigCommand()
+#        if line == NodeProtocol.COMMAND_NODE_HELLO:
+        if line == "node::hello":
+            self.nodeConnected()
+#            self.sendConfigCommand()
         else:
             print "Received unrecognized command from Socket Client: " + line
             self.transport.loseConnection()
@@ -120,11 +134,57 @@ class NodeConfig(LineReceiver):
         "As soon as any data is received, write it back."
         self.transport.write(data)
 
-def addSocket(nodeSocket):
-    print "add socket stub fileno() %d " % nodeSocket.transport.file.fileno()
+class NodeConfFactory(protocol.Factory):
 
-def removeSocket(nodeSocket):
-    print "remove socket stub fileno() %d " % nodeSocket.transport.file.fileno()
+    protocol = NodeProtocol
+    nodeWSFactory = None
+    nodes = [] # connected nodes
+
+    def nodeListChanged(self, nodeData):
+        if self.nodeWSFactory:
+            self.nodeWSFactory.nodeListChanged(nodeData)
+
+    def gotConnection(self, node):
+        self.nodes.append(node)
+        log.msg("node count: %d" % len(self.nodes))
+
+    def lostConnection(self, node):
+        self.nodes.remove(node)
+        log.msg("node count: %d" % len(self.nodes))
+
+# node configuraiton web socket factory
+class NodeWSFactory(WebSocketServerFactory):
+
+    nodeConfFactory = None
+    protocol = ConfWebSocketProtocol
+    websockets = [] # connected websockets
+
+    def nodeListChanged(self, nodeData):
+        # TODO need to actually send real nodelist
+
+        for websocket in self.websockets:
+            log.msg("Sending updated nodelist to one of %d websockets" % len(self.websockets))
+#            websocket.sendCommand(NodeProtocol.UI_NODE_CONNECTED, randint(0, 100), nodeData)
+            websocket.sendCommand("ui::node_connected", randint(0, 100), nodeData)
+
+    def gotConnection(self, webSocketProtocol):
+        self.websockets.append(webSocketProtocol)
+        log.msg("websocket count: %d" % len(self.websockets))
+
+    def lostConnection(self, webSocketProtocol):
+        self.websockets.remove(webSocketProtocol)
+        log.msg("websocket count: %d" % len(self.websockets))
+
+    def __init__(self, url=None, debug=False, nodeConfFactory=None):
+        self.nodeConfFactory = nodeConfFactory
+        self.nodeConfFactory.nodeWSFactory = self;
+        WebSocketServerFactory.__init__(self, url=url, debug=debug)
+
+#def addSocket(nodeSocket):
+#    print "add socket stub fileno() %d " % nodeSocket.transport.file.fileno()
+
+#def removeSocket(nodeSocket):
+#    print "remove socket stub fileno() %d " % nodeSocket.transport.file.fileno()
 
 
 def start():
@@ -135,19 +195,18 @@ def start():
         certificateChainFileName="certs/nodeconf_chain.crt", 
         sslmethod = ssl.SSL.TLSv1_METHOD)
 
-    # create the node configurator server
-    factory = protocol.Factory()
-    factory.protocol = NodeConfig
-    reactor.listenSSL(CONFIGURATOR_PORT, factory, contextFactory)
-
+    # create the node configuration server
+    nodeConfFactory = NodeConfFactory()
+    reactor.listenSSL(CONFIGURATOR_PORT, nodeConfFactory, contextFactory)
     # create the WebSocket server.
-    webSocketFactory = WebSocketServerFactory("wss://localhost:%d" % WEBSERVER_PORT, debug=False)
-    webSocketFactory.protocol = ConfWebSocketProtocol
+#    webSocketFactory = WebSocketServerFactory("wss://localhost:%d" % WEBSERVER_PORT, debug=False)
+    nodeWSFactory = NodeWSFactory("wss://localhost:%d" % WEBSERVER_PORT, nodeConfFactory=nodeConfFactory, debug=False)
+#    nodeWSFactory.protocol = ConfWebSocketProtocol
 #    listenWS(webSocketFactory, contextFactory)
 
     # create the HTTP server.
     nodeHttpResources = NodeStaticResources()
-    wsresource = WebSocketResource(webSocketFactory)
+    wsresource = WebSocketResource(nodeWSFactory)
 
     # add the WebSocket server as a resource to the webserver
     nodeHttpResources.putChild("websocket", wsresource)
