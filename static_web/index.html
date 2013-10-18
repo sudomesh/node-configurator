@@ -1,0 +1,61 @@
+<html>
+  <head>
+    <title>Node Config</title>
+  
+    <!-- css from professionals -->
+    <link href="/static/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/css/flat-ui.css" rel="stylesheet">
+    
+    <!-- css from me -->
+    <link href="/static/css/config.css" rel="stylesheet">
+    
+    <!-- js from professionals -->
+    <script src="/static/js/jquery-1.8.3.min.js"></script>
+    
+    <!-- js from me -->
+    <script src="/static/js/config.js"></script>
+  </head>
+  <body>
+      
+    <div id="top_pane">
+      <a href="https://github.com/sudomesh/node-configurator">sudomesh.org node configurator v0.0.1</a>
+    </div>
+
+    <div id="left_pane">
+      <div id="node_list">
+        <p>No nodes connected.</p>
+        <!-- nodes go here -->        
+
+        <div id="node_0" class="node">
+          <div class="title">1337 19th Street, Oakland</div>
+          <div class="MAC"><span class="label">MAC:</span> <span class="text">C0:DE:CA:FE:C0:CA:FE</span></div>
+          <div class="status"><span class="label">Status:</span> <span class="text">Unconfigured</span></div>
+        </div>
+
+        <div id="node_1" class="node">
+          <div class="title">666 Badeline Street, Oakland</div>
+          <div class="MAC"><span class="label">MAC:</span> <span class="text">C0:DE:CA:FE:C0:CA:FE</span></div>
+          <div class="status"><span class="label">Status:</span> <span class="text modified">Modified</span></div>
+        </div>
+
+      </div>
+    </div>      
+    <div id="right_pane">
+      <div id="node_details">
+        <form id="node_detail_form">
+          Location: <input type="text" name="node_location"><br>
+          Op name:  <input type="text" name="op_name"><br>
+          Op email: <input type="text" name="op_email"><br>
+          Op phone: <input type="text" name="op_phone"><br>
+          <input type="button" id="node_detail_form_button" value="Configure node">
+        </form>
+      </div>
+      
+      <div id="firmware_selector">
+        Firmware image: <input type="file"   id="firmware_input"><br>
+        <input type="button" id="firmware_update_button" value="Flash node">
+      </div>
+      
+    </div>
+  </body>
+</html>

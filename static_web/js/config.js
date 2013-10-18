@@ -1,7 +1,7 @@
 var CONST_INTERVAL_MS = 5000;
 
 var last_timer;
-var wsuri = "ws://localhost:9000";
+var wsuri = "wss://localhost:8080/websocket";
 var sock = new WebSocket(wsuri);
   
 function send_command() {

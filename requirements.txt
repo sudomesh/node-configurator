@@ -1,0 +1,2 @@
+autobahn==0.6.3
+pyOpenSSL==0.13.1

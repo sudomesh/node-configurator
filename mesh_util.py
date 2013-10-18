@@ -9,10 +9,12 @@ from random               import randint
 
 from twisted.web.resource import Resource
 from twisted.web.static   import File
+import os.path
+
 
 # Implementation specific constants.
 STATIC_DIR_PATH = "./static_web"
-INDEX_FILE_NAME = "config.html"
+INDEX_FILE_NAME = "index.html"
 
 
 class NodeProtocol:
@@ -33,10 +35,19 @@ class NodeStaticResources(Resource):
     STATIC_NAME = "static"
 
     def getChild(self, name, request):
+        child = Resource.getChild(self, name, request)
         if name == self.STATIC_NAME:
-            return File(STATIC_DIR_PATH)
-
-        return File(STATIC_DIR_PATH + "/" + INDEX_FILE_NAME)
+            f = File(STATIC_DIR_PATH)
+            if f.exists():
+                return f
+            else:
+                return child
+        
+        f = File(STATIC_DIR_PATH + "/" + INDEX_FILE_NAME)
+        if f.exists():
+            return f
+        else:
+            return child
 
 
 class MeshNode:
@@ -44,7 +55,7 @@ class MeshNode:
 
     HARDWARE_MODEL_KEY   = 'hardware_model'
     FIRMWARE_VERSION_KEY = 'firmware_version'
-    GEO_LOCATION_KEY     = 'g   eo_location'
+    GEO_LOCATION_KEY     = 'geo_location'
     OP_NAME_KEY          = 'op_name'
     OP_EMAIL_KEY         = 'op_email'
     OP_PHONE_KEY         = 'op_phone'
