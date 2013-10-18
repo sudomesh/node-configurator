@@ -3,6 +3,44 @@ var CONST_INTERVAL_MS = 5000;
 var last_timer;
 var wsuri = "wss://localhost:8080/websocket";
 var sock = new WebSocket(wsuri);
+
+function update_node_list(data) {
+    var node = data.node_obj;
+    var outer = document.createElement('DIV');
+    outer.id = 'node_0';
+    outer.className = 'node';
+    var sub = document.createElement('DIV');
+    sub.className = 'title';
+    sub.innerHTML = node.hardware_model || "Unknown";
+    outer.appendChild(sub);
+
+    sub = document.createElement('DIV');
+    sub.className = 'MAC';    
+    var subsub = document.createElement('SPAN');
+    subsub.className = 'label';
+    subsub.innerHTML = "MAC:";
+    sub.appendChild(subsub);
+    subsub = document.createElement('SPAN');
+    subsub.className = 'text';
+    subsub.innerHTML = "C0:DE:CA:FE:C0:CA:FE";
+    sub.appendChild(subsub);
+    outer.appendChild(sub);
+
+    sub = document.createElement('DIV');
+    sub.className = 'status';    
+    var subsub = document.createElement('SPAN');
+    subsub.className = 'label';
+    subsub.innerHTML = "Status::";
+    sub.appendChild(subsub);
+    subsub = document.createElement('SPAN');
+    subsub.className = 'text';
+    subsub.innerHTML = "Unconfigured";
+    sub.appendChild(subsub);
+    outer.appendChild(sub);
+
+    $('#node_list').html('');
+    $('#node_list')[0].appendChild(outer);
+}
   
 function send_command() {
   fakeNode = {
@@ -36,6 +74,9 @@ $(document).ready(function() {
   
   sock.onmessage = function(e) {
     console.log("message received: " + e.data);
-    send_command();
+      var data = $.parseJSON(e.data);
+    update_node_list(data);
+
+//    send_command();
   }
 });
