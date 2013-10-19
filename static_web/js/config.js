@@ -47,7 +47,7 @@ var NodeConf = {
         for(i=0; i < nodes.length; i++) {
             // TODO fix
             nodes[i].id = 'node_'+i;
-            nodes[i].title = nodes[i].hardware_model;
+            nodes[i].title = nodes[i].node_obj.hardware_model;
             nodes[i].status = 'unconfigured';
             nodes[i].mac = 'C0:DE:CA:FE:C0:DE:CA:FE';
             h = this.node_template(nodes[i]);
