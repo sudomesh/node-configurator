@@ -1,0 +1,18 @@
+{
+        "server": {
+                "hostname": "nodeconf.local",
+                "port": "1337",
+                "web_port": "8080",
+                "protocol": "https",
+                "websocket_path": "/websocket"
+        },
+        "protocol": {
+                    "ui_node_connected": "ui::node_connected",
+                    "ui_node_disconnected": "ui::node_disconnected",
+                    "cmd_node_has_new_config": "node::has_new_config",
+                    "cmd_node_wants_new_config": "node::wants_new_config",
+                    "cmd_node_hello": "node::hello",
+                    "cmd_node_set_config": "node::set_config",
+                    "cmd_node_set_firmware": "node::set_firmware"
+        }
+}

@@ -1,9 +1,11 @@
 #!/usr/bin/python
 
+import json
 import time
 import string
 import random
 import threading
+import re
 
 from random               import randint
 
@@ -12,22 +14,27 @@ from twisted.web.static   import File
 import os.path
 
 
+
 # Implementation specific constants.
 STATIC_DIR_PATH = "./static_web"
 INDEX_FILE_NAME = "index.html"
+CONFIG_FILE = "config/common.json"
+
+#class NodeProtocol:
+#    UI_NODE_CONNECTED    = 'ui::node_connected'
+#    UI_NODE_DISCONNECTED = 'ui::node_disconnected'
+#    COMMAND_NODE_HAS_NEW_CONFIG   = "node::has_new_config"
+#    COMMAND_NODE_WANTS_NEW_CONFIG = "node::wants_new_config"
+#    COMMAND_NODE_HELLO        = "node::hello"
+#    COMMAND_NODE_SET_CONFIG   = "node::set_config"
+#    COMMAND_NODE_SET_FIRMWARE = "node::set_firmware"
 
 
-class NodeProtocol:
-    UI_NODE_CONNECTED    = 'ui::node_connected'
-    UI_NODE_DISCONNECTED = 'ui::node_disconnected'
+class Config():
 
-    COMMAND_NODE_HAS_NEW_CONFIG   = "node::has_new_config"
-    COMMAND_NODE_WANTS_NEW_CONFIG = "node::wants_new_config"
-
-    COMMAND_NODE_HELLO        = "node::hello"
-    COMMAND_NODE_SET_CONFIG   = "node::set_config"
-    COMMAND_NODE_SET_FIRMWARE = "node::set_firmware"
-
+    @staticmethod
+    def load():
+        return json.load(open(CONFIG_FILE))
 
 class NodeStaticResources(Resource):
     'Subclass Resource to serve static node configuration resources'
@@ -43,6 +50,7 @@ class NodeStaticResources(Resource):
             else:
                 return child
         
+
         f = File(STATIC_DIR_PATH + "/" + INDEX_FILE_NAME)
         if f.exists():
             return f
@@ -138,3 +146,4 @@ class FakeNodePopulatorThread(threading.Thread):
 
     def finish(self):
         self._running = False
+        

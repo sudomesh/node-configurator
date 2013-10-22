@@ -3,6 +3,11 @@
 require("socket")
 require("ssl")
 require("string")
+json = require("dkjson-min")
+
+config_file_path = "config/common.json"
+
+config = nil
 
 --[[
 
@@ -226,6 +231,15 @@ function say_hello(conn)
   return receive_config(conn)
 end
 
+function load_config()
+  local f = io.open(config_file_path)
+  local data = f:read("*all")
+  config = json.decode(data)
+  io.close()
+end
+
+
+load_config()
 
 local c
 c = connect()

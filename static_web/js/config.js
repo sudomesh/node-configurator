@@ -10,21 +10,26 @@
 
 var NodeConf = {
 
-    wsuri: "wss://localhost:8080/websocket",
+    config_file: 'static/config/common.json',
+    websocket_uri: null,
     last_timer: null,
     CONST_INTERVAL_MS: 5000,
     sock: null,
     node_template: null,
 
     init: function() {
+        this.load_config();
+    },
 
-        this.sock = new WebSocket(this.wsuri);
+    init_continued: function() {
+
+        this.sock = new WebSocket(this.websocket_uri);
         this.node_template = _.template($('#node_template').html());
 
         console.log("mesh the planet!");
   
         this.sock.onopen = function() {
-            console.log("connected to " + this.wsuri);
+            console.log("connected to " + this.websocket_uri);
         }.bind(this);
  
         this.sock.onclose = function(e) {
@@ -38,6 +43,29 @@ var NodeConf = {
             data = [data];
             this.update_node_list(data);
         }.bind(this);
+    },
+
+    load_config: function() {
+        $.get(this.config_file, '', function(data, status) {
+            console.log("data: " + data.protocol);
+            this.config = data;
+            var port = '';
+            // if non-standard port
+            // specify port in websocket uri
+            if(((window.location.protocol == 'http:') && (parseInt(window.location.port) != 80)) || ((window.location.protocol == 'https:') && (parseInt(window.location.port) != 443))) {
+                port = ':'+window.location.port;
+            }
+            // use ssl for websockets if using https
+            var websocket_protocol = 'ws';
+            if(window.location.protocol == 'https:') {
+                websocket_protocol = 'wss';                
+            };
+
+            // build websocket uri
+            this.websocket_uri = websocket_protocol + '://' + window.location.hostname + port + this.config.server.websocket_path;
+            this.init_continued();
+        }.bind(this));
+
     },
     
     update_node_list: function(nodes) {

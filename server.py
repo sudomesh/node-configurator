@@ -16,15 +16,15 @@ from autobahn.websocket import WebSocketServerFactory, \
 
 from autobahn.resource import WebSocketResource
 
-from mesh_util import NodeProtocol, \
+from mesh_util import Config, \
                       MeshNodeFactory, \
                       NodeStaticResources, \
                       FakeNodePopulatorThread
 
-CONFIGURATOR_PORT = 1337;
-WEBSERVER_PORT = 8080;
-WEBSOCKET_PORT = 9000;
-
+#CONFIGURATOR_PORT = 1337;
+#WEBSERVER_PORT = 8080;
+#WEBSOCKET_PORT = 9000;
+config = None
 
 class ConfWebSocketProtocol(WebSocketServerProtocol):
     'Subclass WebSocketServerProtocol configure mesh nodes over WebSocket'
@@ -123,7 +123,7 @@ class NodeProtocol(LineReceiver):
 
     def lineReceived(self, line):
 #        if line == NodeProtocol.COMMAND_NODE_HELLO:
-        if line == "node::hello":
+        if line == config['protocol']['cmd_node_hello']:
             self.nodeConnected()
 #            self.sendConfigCommand()
         else:
@@ -165,7 +165,7 @@ class NodeWSFactory(WebSocketServerFactory):
         for websocket in self.websockets:
             log.msg("Sending updated nodelist to one of %d websockets" % len(self.websockets))
 #            websocket.sendCommand(NodeProtocol.UI_NODE_CONNECTED, randint(0, 100), nodeData)
-            websocket.sendCommand("ui::node_connected", randint(0, 100), nodeData)
+            websocket.sendCommand(config['protocol']['ui_node_connected'], randint(0, 100), nodeData)
 
     def gotConnection(self, webSocketProtocol):
         self.websockets.append(webSocketProtocol)
@@ -197,29 +197,50 @@ def start():
 
     # create the node configuration server
     nodeConfFactory = NodeConfFactory()
-    reactor.listenSSL(CONFIGURATOR_PORT, nodeConfFactory, contextFactory)
+    reactor.listenSSL(int(config['server']['port']), nodeConfFactory, contextFactory)
     # create the WebSocket server.
 #    webSocketFactory = WebSocketServerFactory("wss://localhost:%d" % WEBSERVER_PORT, debug=False)
-    nodeWSFactory = NodeWSFactory("wss://localhost:%d" % WEBSERVER_PORT, nodeConfFactory=nodeConfFactory, debug=False)
+
+    # Build Web and WebSocket URIs
+    hostname = config['server']['hostname']
+    web_protocol = config['server']['protocol']
+    websocket_protocol = None
+
+    if web_protocol == 'http':
+        websocket_protocol = 'ws'
+    else:
+        websocket_protocol = 'wss'
+
+    web_port = int(config['server']['web_port'])
+    port_str = ''
+    if ((web_protocol == 'http') and (web_port != 80)) or ((web_protocol == 'https') and (web_port != 443)):
+        port_str = ':%s' % str(web_port)
+
+    websocket_uri = websocket_protocol + '://' + hostname + port_str
+    web_uri = web_protocol + '://' + hostname + port_str
+
+    nodeWSFactory = NodeWSFactory(websocket_uri, nodeConfFactory=nodeConfFactory, debug=False)
 #    nodeWSFactory.protocol = ConfWebSocketProtocol
 #    listenWS(webSocketFactory, contextFactory)
 
     # create the HTTP server.
     nodeHttpResources = NodeStaticResources()
     wsresource = WebSocketResource(nodeWSFactory)
+    wsresource_name = config['server']['websocket_path'][1:]
 
     # add the WebSocket server as a resource to the webserver
-    nodeHttpResources.putChild("websocket", wsresource)
+    nodeHttpResources.putChild(wsresource_name, wsresource)
 
     webServerFactory = Site(nodeHttpResources)
 
-    reactor.listenSSL(WEBSERVER_PORT, webServerFactory, contextFactory)
+    reactor.listenSSL(web_port, webServerFactory, contextFactory)
 
-    log.msg("Webserver ready on https://localhost:%s" % WEBSERVER_PORT);
+    log.msg("Webserver ready on %s" % web_uri);
 
     # start the servers.
     reactor.run()
 
 
 if __name__ == "__main__":
+    config = Config.load()
     start()
