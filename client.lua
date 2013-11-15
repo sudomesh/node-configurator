@@ -60,14 +60,13 @@ function fail(err_msg)
   os.exit(-1);
 end
 
-function connect()
+function connect(ip, port)
 
   -- TLS/SSL client parameters (omitted)
   local params
 
   local conn = socket.tcp()
-  conn:connect("nodeconf.local", 1337)
-
+  conn:connect(ip, port)
 
   local params = {
     mode = "client",
@@ -226,10 +225,9 @@ function receive_config(conn)
   return receive_file(conn)
 end
 
-function say_hello(conn)
-  conn:send("node::hello\n")
-  return receive_config(conn)
-end
+--function send_node_info(conn)
+--  conn:send("node::hello\n")
+--end
 
 function load_config()
   local f = io.open(config_file_path)
@@ -238,19 +236,128 @@ function load_config()
   io.close()
 end
 
+function begin_connection(ip, port)
+
+  local c
+
+  print("connecting to "..ip..":"..port)
+  c = connect(ip, port)
+
+  if not c then
+     print("Failed to connect")
+     conn:close()
+     os.exit(-1);
+  end
+
+  -- receive the configuration from the server
+
+--  c:send("node::hello\n")
+  local node_info_msg = build_node_info_msg()
+  c:send(node_info_msg)
+
+-- TODO deal with received data
+  local data = c:receive("*l")
+
+  c:close()
+
+end
+
+function find_server_and_connect()
+
+  local mdns
+  local line
+  local hostname
+  local ip
+  local port
+
+  mdns = io.popen(config.utils.mdnssd_min..' '..config.server.service_type, 'r')
+
+-- TODO support connecting to multiple servers
+  while true do
+    line = mdns:read("*line")
+    if line == nil then
+      break
+    end
+    hostname, ip, port = string.match(line, "(.+)%s+(.+)%s+(.+)")
+--    print("host: "..hostname.." | ip: "..ip.." | port: "..port)
+    if hostname ~= nil and ip ~= nil and port ~= nil then
+--      begin_connection(ip, port)
+--TODO this is a temporary thing for development
+        begin_connection("127.0.0.1", 1337)
+        mdns:close()
+      return true
+    end
+  end
+  mdns:close()
+  return false
+end
+
+function get_node_mac()
+
+  local f
+  local line
+
+  f = io.popen("ip addr show scope link dev wlan0|grep link", 'r')
+  line = f:read("*line")
+  f:close()
+  if line == nil then
+    return false
+  end
+
+  mac = string.match(line, "(%w%w:%w%w:%w%w:%w%w:%w%w:%w%w)")
+
+  return mac
+end
+
+
+function get_system_type()
+
+  local f
+  local line
+
+  f = io.popen("cat /proc/cpuinfo | grep 'system type'", 'r')
+  line = f:read("*line")
+  f:close()
+  if line == nil then
+    f = io.popen("cat /proc/cpuinfo | grep 'model name'", 'r')
+    line = f:read("*line")
+      f:close()
+      if line == nil then
+         return false
+      end
+  end
+
+  system_type = string.match(line, ":%s+(.+)")
+
+  -- remove multiple spaces
+  system_type = string.gsub(system_type, "%s+", " ")
+
+  return system_type
+end
+
+-- build json identifying this node
+function build_node_info_msg() 
+
+  local o = {}
+
+  o['type'] = "node_appeared"
+  o['data'] = {}
+  o['data']['mac_addr'] = get_node_mac()
+  o['data']['system_type'] = get_system_type()
+
+  return json.encode(o).."\n"
+end
+
 
 load_config()
 
-local c
-c = connect()
+--mac_addr = get_node_mac()
+--print("MAC: "..mac_addr)
 
-if not c then
-   print("Failed to connect")
-   conn:close()
-   os.exit(-1);
-end
--- receive the configuration from the server
-say_hello(c)
+--system_type = get_system_type()
+--print("System: "..system_type)
+
+find_server_and_connect()
 
 
-c:close()
+

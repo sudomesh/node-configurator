@@ -69,6 +69,13 @@ html body {
     border-top: 1px solid black;
 }
 
+#node_list .node .title {
+    width: 95%;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
 #node_list .node .label {
     display: inline-block;
     width: 50px;

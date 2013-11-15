@@ -1,5 +1,9 @@
 {
+        "utils": {
+                "mdnssd_min": "/home/juul/projects/meshing/firmware/mdnssd-mini/mdnssd-min"
+        },
         "server": {
+                "service_type": "_mpd._tcp.local",
                 "hostname": "nodeconf.local",
                 "port": "1337",
                 "web_port": "8080",

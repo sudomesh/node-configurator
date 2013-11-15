@@ -3,12 +3,12 @@
 import sys
 import json
 
-from random               import randint
+from random import randint
 
-from twisted.python     import log
-from twisted.internet   import reactor, ssl, protocol
+from twisted.python import log
+from twisted.internet import reactor, ssl, protocol
 from twisted.web.server import Site
-from twisted.protocols.basic   import LineReceiver
+from twisted.protocols.basic import LineReceiver
 
 from autobahn.websocket import WebSocketServerFactory, \
                                WebSocketServerProtocol, \
@@ -21,9 +21,6 @@ from mesh_util import Config, \
                       NodeStaticResources, \
                       FakeNodePopulatorThread
 
-#CONFIGURATOR_PORT = 1337;
-#WEBSERVER_PORT = 8080;
-#WEBSOCKET_PORT = 9000;
 config = None
 
 class ConfWebSocketProtocol(WebSocketServerProtocol):
@@ -33,15 +30,8 @@ class ConfWebSocketProtocol(WebSocketServerProtocol):
     SOCKET_ID_KEY   = 'socket_id'
     NODE_OBJECT_KEY = 'node_obj'
 
-    def sendCommand(self, command, socket_id=-1, meshNode=-1):
-        command_array = {
-            ConfWebSocketProtocol.COMMAND_KEY: command,
-            ConfWebSocketProtocol.SOCKET_ID_KEY: socket_id,
-        }
-        if meshNode != -1:
-            command_array[ConfWebSocketProtocol.NODE_OBJECT_KEY] = meshNode.toDictionary()
-
-        self.sendMessage(json.dumps(command_array), False)
+    def sendMsg(self, msg):
+        self.sendMessage(json.dumps(msg), False)
 
     def onOpen(self):
         self.factory.gotConnection(self)
@@ -105,8 +95,8 @@ class NodeProtocol(LineReceiver):
 
     def nodeConnected(self):
         print "Node connected"
-        nodeData = MeshNodeFactory.buildFake()
-        self.factory.nodeListChanged(nodeData)
+#        nodeData = MeshNodeFactory.buildFake()
+#        self.factory.nodeListChanged(nodeData)
 
     def sendConfigCommand(self):
         self.sendLine(NodeProtocol.COMMAND_NODE_SET_CONFIG)
@@ -115,20 +105,41 @@ class NodeProtocol(LineReceiver):
 
     def connectionMade(self):
         print "Got connection"
-#        addSocket(self)
+        self.nodeInfo = None
 
     def connectionLost(self, reason):
         print "Lost connection"
-#        removeSocket(self)
+        if(self.nodeInfo):
+            self.factory.nodeDisappeared(self.nodeInfo)
+
+
+    def gotNodeInfo(self, msg):
+        self.nodeInfo = msg['data']
+        self.factory.nodeAppeared(self.nodeInfo)
+        
+    def parseMessage(self, msg_str):
+        print "Parsing message"
+        msg = json.loads(msg_str)
+        if not msg:
+            print "Could not parse JSON"
+            self.transport.loseConnection()
+            return
+
+        if msg['type'] == 'node_appeared':
+            self.gotNodeInfo(msg)
+        else:
+            print "Unknown message"
 
     def lineReceived(self, line):
+        print "GOT: " + line
+        self.parseMessage(line)
 #        if line == NodeProtocol.COMMAND_NODE_HELLO:
-        if line == config['protocol']['cmd_node_hello']:
-            self.nodeConnected()
+#        if line == config['protocol']['cmd_node_hello']:
+#            self.nodeConnected()
 #            self.sendConfigCommand()
-        else:
-            print "Received unrecognized command from Socket Client: " + line
-            self.transport.loseConnection()
+#        else:
+#            print "Received unrecognized command from Socket Client: " + line
+#            self.transport.loseConnection()
 
     def rawDataReceived(self, data):
         "As soon as any data is received, write it back."
@@ -140,9 +151,14 @@ class NodeConfFactory(protocol.Factory):
     nodeWSFactory = None
     nodes = [] # connected nodes
 
-    def nodeListChanged(self, nodeData):
+    def nodeAppeared(self, nodeInfo):
         if self.nodeWSFactory:
-            self.nodeWSFactory.nodeListChanged(nodeData)
+            self.nodeWSFactory.nodeAppeared(nodeInfo)
+
+    def nodeDisappeared(self, nodeInfo):
+        if self.nodeWSFactory:
+            self.nodeWSFactory.nodeDisappeared(nodeInfo)
+
 
     def gotConnection(self, node):
         self.nodes.append(node)
@@ -159,13 +175,23 @@ class NodeWSFactory(WebSocketServerFactory):
     protocol = ConfWebSocketProtocol
     websockets = [] # connected websockets
 
-    def nodeListChanged(self, nodeData):
-        # TODO need to actually send real nodelist
+    def nodeAppeared(self, nodeInfo):
 
         for websocket in self.websockets:
             log.msg("Sending updated nodelist to one of %d websockets" % len(self.websockets))
-#            websocket.sendCommand(NodeProtocol.UI_NODE_CONNECTED, randint(0, 100), nodeData)
-            websocket.sendCommand(config['protocol']['ui_node_connected'], randint(0, 100), nodeData)
+            msg = {}
+            msg['type'] = 'node_appeared'
+            msg['data'] = nodeInfo
+            websocket.sendMsg(msg)
+            
+    def nodeDisappeared(self, nodeInfo):
+
+        for websocket in self.websockets:
+            log.msg("Sending updated nodelist to one of %d websockets" % len(self.websockets))
+            msg = {}
+            msg['type'] = 'node_disappeared'
+            msg['data'] = nodeInfo
+            websocket.sendMsg(msg)
 
     def gotConnection(self, webSocketProtocol):
         self.websockets.append(webSocketProtocol)
