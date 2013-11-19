@@ -3,6 +3,18 @@ html body {
     margin: 0;
 }
 
+h2 {
+    font-size: 22px;
+}
+
+h3 {
+    font-size: 16px;
+}
+
+p {
+    font-size: 13px;
+}
+
 #top_pane {
     position: absolute;
     top: 0;
@@ -59,6 +71,10 @@ html body {
     background-color: #EEEEEE;
     border-bottom: 1px solid black;
     cursor: pointer;
+}
+
+#node_list .selected {
+    background-color: #CCFFCC;
 }
 
 #node_list .node:hover {
@@ -121,4 +137,9 @@ html body {
 
 #node_list .node .status .configured {
     color: green;
+}
+
+#flash {
+    color: red;
+    font-size: 14px;
 }

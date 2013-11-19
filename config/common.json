@@ -8,7 +8,8 @@
                 "port": "1337",
                 "web_port": "8080",
                 "protocol": "https",
-                "websocket_path": "/websocket"
+                "websocket_path": "/websocket",
+                "config_post_path": "/configure"
         },
         "protocol": {
                     "ui_node_connected": "ui::node_connected",

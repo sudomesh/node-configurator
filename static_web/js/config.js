@@ -7,6 +7,24 @@
 
 */
 
+// TODO move to utils js file
+$.fn.serializeObject = function()
+{
+    var o = {};
+    var a = this.serializeArray();
+    $.each(a, function() {
+        if (o[this.name] !== undefined) {
+            if (!o[this.name].push) {
+                o[this.name] = [o[this.name]];
+            }
+            o[this.name].push(this.value || '');
+        } else {
+            o[this.name] = this.value || '';
+        }
+    });
+    return o;
+};
+
 
 var NodeConf = {
 
@@ -26,6 +44,7 @@ var NodeConf = {
 
         this.sock = new WebSocket(this.websocket_uri);
         this.node_template = _.template($('#node_template').html());
+        this.node_form_template = _.template($('#node_form_template').html());
 
         console.log("mesh the planet!");
   
@@ -101,7 +120,70 @@ var NodeConf = {
             container.html('');
         }
         container.append(h);
+        h = container.find('.node:last-child');
+        h.click(this.node_selected.bind(this));
+        h[0].node = node;
+
         this.nodes.push(node);
+    },
+
+    node_selected: function(e) {
+        var el = $(e.target).closest('.node');
+        this.show_form_for_node(el);
+        e.stopPropagation();
+        e.preventDefault();
+        return false;
+    },
+
+    show_form_for_node: function(el) {
+        if(el.length <= 0) {
+            console.log("Could not find node data for element");
+            return false;
+        }
+        $('#node_list .node').removeClass('selected');
+        el.addClass('selected');
+        var node = el[0].node;
+        var saved_conf = $.cookie(node.mac_addr);
+        if(saved_conf) {
+            node.conf = JSON.parse(saved_conf);
+        } else {
+            node.conf = node.conf || {};
+        }
+        var h = this.node_form_template(node)
+        $('#right_pane').html(h);
+        var form = $('#right_pane .node_info_form');
+        form.change(this.form_changed.bind(this));
+        form.submit(this.form_submit.bind(this));
+    },
+
+    form_submit: function(e) {
+        var form = $(e.target).closest('form');
+        
+        var msg = {
+            type: 'node_config',
+            data: form.serializeObject()
+        };
+        
+        $.post('configure', JSON.stringify(msg), this.submit_callback.bind(this));
+
+        e.stopPropagation();
+        e.preventDefault();
+        return false;
+    },
+    
+    submit_callback: function(msg_str, textStatus) {
+        // TODO report actual success or failure
+        var msg = $.parseJSON(msg_str);
+        if(!msg || (msg.status != 'success')) {
+            $('#flash').html("Error: " + msg.error);
+            return false;
+        }
+        $('#flash').html("Node successfully configured!");
+    },
+
+    form_changed: function(e) {
+        var o = $('#right_pane .node_info_form').serializeObject();
+        $.cookie(o.mac_addr, JSON.stringify(o), {expires: 7});
     },
 
     remove_node: function(node) {

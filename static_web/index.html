@@ -11,9 +11,11 @@
    
     <!-- mass-produced js from the intertubes -->
     <script type="text/javascript" src="/static/js/jquery-1.8.3.min.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.cookie.js"></script>
     <script type="text/javascript" src="/static/js/underscore.js"></script>
+    <script type="text/javascript" src="/static/js/json2.js"></script>
 
-    <!-- js from local heroes! -->
+    <!-- app-specific js -->
     <script type="text/javascript" src="/static/js/config.js"></script>
 
     <!-- javascript templates -->
@@ -24,10 +26,29 @@
           <div class="status"><span class="label">Status:</span> <span class="text"><%- status %></span></div>
         </div>
     </script>
+
+    <script id="node_form_template" type="template/html">
+      <div id="flash"></div>
+      <div class="node_info">
+        <h2><%- title %></h2>
+        <h3>MAC: <%- mac_addr %></h3>
+        <h3>Organization: <%- mac_org %></h3>
+        <form class="node_info_form">
+          <input type="hidden" name="mac_addr" value="<%- mac_addr %>">
+          Location: <input type="text" name="location" value="<%- conf.location %>"><br>
+          Operator name:  <input type="text" name="operator_name" value="<%- conf.operator_name %>"><br>
+          Operator email: <input type="text" name="operator_email" value="<%- conf.operator_email %>"><br>
+          Operator phone: <input type="text" name="operator_phone" value="<%- conf.operator_phone %>"><br>
+          <input type="submit" id="node_detail_form_button" value="Configure node">
+        </form>
+      </div>
+    </script>
+
   </head>
   <body>
       
     <div id="top_pane">
+
       <a href="https://github.com/sudomesh/node-configurator">sudomesh.org node configurator v0.0.1</a>
     </div>
 
@@ -38,21 +59,9 @@
       </div>
     </div>      
     <div id="right_pane">
-      <div id="node_details">
-        <form id="node_detail_form">
-          Location: <input type="text" name="node_location"><br>
-          Op name:  <input type="text" name="op_name"><br>
-          Op email: <input type="text" name="op_email"><br>
-          Op phone: <input type="text" name="op_phone"><br>
-          <input type="button" id="node_detail_form_button" value="Configure node">
-        </form>
-      </div>
-      
-      <div id="firmware_selector">
-        Firmware image: <input type="file"   id="firmware_input"><br>
-        <input type="button" id="firmware_update_button" value="Flash node">
-      </div>
-      
+      <h2>Node Configurator 0.1</h2>
+      <p>Wait for a node to show up in the left panel, then click the node to start configuration.</p>
+      <p>As you fill out the configuration form, the data is saved client-side in a cookie in case the node gets disconnected mid-configuration. Simply re-boot/re-connect the node and continue configuration.</p>
     </div>
   </body>
 </html>

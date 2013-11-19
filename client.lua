@@ -270,6 +270,10 @@ function find_server_and_connect()
   local ip
   local port
 
+--TODO this is a temporary thing for development
+  begin_connection("127.0.0.1", 1337)
+
+--[[
   mdns = io.popen(config.utils.mdnssd_min..' '..config.server.service_type, 'r')
 
 -- TODO support connecting to multiple servers
@@ -281,15 +285,14 @@ function find_server_and_connect()
     hostname, ip, port = string.match(line, "(.+)%s+(.+)%s+(.+)")
 --    print("host: "..hostname.." | ip: "..ip.." | port: "..port)
     if hostname ~= nil and ip ~= nil and port ~= nil then
---      begin_connection(ip, port)
---TODO this is a temporary thing for development
-        begin_connection("127.0.0.1", 1337)
+      begin_connection(ip, port)
         mdns:close()
       return true
     end
   end
   mdns:close()
   return false
+--]]
 end
 
 function get_node_mac()

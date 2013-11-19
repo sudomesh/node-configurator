@@ -36,8 +36,42 @@ class Config():
     def load():
         return json.load(open(CONFIG_FILE))
 
-class NodeStaticResources(Resource):
-    'Subclass Resource to serve static node configuration resources'
+class NodeConfigResource(Resource):
+    isLeaf = True
+    nodeConfFactory = None
+
+    def __init__(self, nodeConfFactory):
+        self.nodeConfFactory = nodeConfFactory
+
+    def render_POST(self, request):
+        reply = {}
+        reply['type'] = "node_config_reply"
+        reply['status'] = "success"
+        msg_str = request.content.read()
+        print "Got: " + msg_str
+        msg = json.loads(msg_str)
+        
+        if not msg:
+            reply['status'] = "error"
+            reply['error'] = "Server could not parse JSON submitted by client"
+            return json.dumps(reply)
+
+        if msg['type'] != "node_config":
+            reply['status'] = "error"
+            reply['error'] = "Unrecognized message type: " + msg['type']
+            return json.dumps(reply)
+
+        if not self.nodeConfFactory.configureNode(msg['data']):
+            if msg['type'] != "node_config":
+                reply['status'] = "error"
+                # TODO better error message
+                reply['error'] = "Node configuration failed"
+                return json.dumps(reply)
+
+        return json.dumps(reply)
+
+class NodeStaticResource(Resource):
+    'Subclass Resource to serve static node configuration resource'
 
     STATIC_NAME = "static"
 

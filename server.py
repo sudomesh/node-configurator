@@ -14,12 +14,15 @@ from autobahn.websocket import WebSocketServerFactory, \
                                WebSocketServerProtocol, \
                                listenWS
 
+from netaddr import * # for OUI database lookups
+
 from autobahn.resource import WebSocketResource
 
 from mesh_util import Config, \
                       MeshNodeFactory, \
-                      NodeStaticResources, \
-                      FakeNodePopulatorThread
+                      NodeStaticResource, \
+                      FakeNodePopulatorThread, \
+                      NodeConfigResource
 
 config = None
 
@@ -61,7 +64,7 @@ class ConfWebSocketProtocol(WebSocketServerProtocol):
 
     def connectionLost(self, reason):
         self.factory.lostConnection(self)
-        self._nodePopulator.finish()
+#        self._nodePopulator.finish()
         WebSocketServerProtocol.connectionLost(self, reason)
 
 
@@ -110,12 +113,34 @@ class NodeProtocol(LineReceiver):
     def connectionLost(self, reason):
         print "Lost connection"
         if(self.nodeInfo):
-            self.factory.nodeDisappeared(self.nodeInfo)
+            self.factory.nodeDisappeared(self)
 
+    # configures an attached node
+    # based on form POST data received
+    # from the web app
+    def configure(self, nodeConfig):
+
+        print "=== TODO implement ==="
+
+
+    def lookup_org_from_mac(self, mac_addr):
+        mac = EUI(mac_addr)
+        if not mac:
+            return None
+        reg = mac.oui.registration()
+        if not reg:
+            return None
+        return reg.org
+        
 
     def gotNodeInfo(self, msg):
         self.nodeInfo = msg['data']
-        self.factory.nodeAppeared(self.nodeInfo)
+        if not self.nodeInfo['mac_addr']:
+            return
+        
+        self.nodeInfo['mac_org'] = self.lookup_org_from_mac(self.nodeInfo['mac_addr']) or "Unknown"
+#        print "ORG: " + self.nodeInfo['mac_org']
+        self.factory.nodeAppeared(self)
         
     def parseMessage(self, msg_str):
         print "Parsing message"
@@ -131,7 +156,6 @@ class NodeProtocol(LineReceiver):
             print "Unknown message"
 
     def lineReceived(self, line):
-        print "GOT: " + line
         self.parseMessage(line)
 #        if line == NodeProtocol.COMMAND_NODE_HELLO:
 #        if line == config['protocol']['cmd_node_hello']:
@@ -151,22 +175,30 @@ class NodeConfFactory(protocol.Factory):
     nodeWSFactory = None
     nodes = [] # connected nodes
 
-    def nodeAppeared(self, nodeInfo):
-        if self.nodeWSFactory:
-            self.nodeWSFactory.nodeAppeared(nodeInfo)
+    # takes the node config data submitted from the from
+    # in the web app and runs configuration for the node
+    # with the matchin MAC address
+    def configureNode(self, nodeConfig):
+        for node in self.nodes:
+            if nodeConfig['mac_addr'] == node.nodeInfo['mac_addr']:
+                node.configure(nodeConfig)
+                return True
 
-    def nodeDisappeared(self, nodeInfo):
-        if self.nodeWSFactory:
-            self.nodeWSFactory.nodeDisappeared(nodeInfo)
+        return False
+            
 
-
-    def gotConnection(self, node):
-        self.nodes.append(node)
+    def nodeAppeared(self, proto):
+        self.nodes.append(proto)
         log.msg("node count: %d" % len(self.nodes))
+        if self.nodeWSFactory:
+            self.nodeWSFactory.nodeAppeared(proto.nodeInfo)
 
-    def lostConnection(self, node):
-        self.nodes.remove(node)
+    def nodeDisappeared(self, proto):
+        self.nodes.remove(proto)
         log.msg("node count: %d" % len(self.nodes))
+        if self.nodeWSFactory:
+            self.nodeWSFactory.nodeDisappeared(proto.nodeInfo)
+
 
 # node configuraiton web socket factory
 class NodeWSFactory(WebSocketServerFactory):
@@ -194,8 +226,15 @@ class NodeWSFactory(WebSocketServerFactory):
             websocket.sendMsg(msg)
 
     def gotConnection(self, webSocketProtocol):
+        # every time a new websocket connects, 
+        # tell them about all connected nodes
         self.websockets.append(webSocketProtocol)
         log.msg("websocket count: %d" % len(self.websockets))
+        for node in self.nodeConfFactory.nodes:
+            msg = {}
+            msg['type'] = 'node_appeared'
+            msg['data'] = node.nodeInfo
+            webSocketProtocol.sendMsg(msg)
 
     def lostConnection(self, webSocketProtocol):
         self.websockets.remove(webSocketProtocol)
@@ -250,14 +289,19 @@ def start():
 #    listenWS(webSocketFactory, contextFactory)
 
     # create the HTTP server.
-    nodeHttpResources = NodeStaticResources()
+    nodeHttpResource = NodeStaticResource()
     wsresource = WebSocketResource(nodeWSFactory)
     wsresource_name = config['server']['websocket_path'][1:]
 
     # add the WebSocket server as a resource to the webserver
-    nodeHttpResources.putChild(wsresource_name, wsresource)
+    nodeHttpResource.putChild(wsresource_name, wsresource)
 
-    webServerFactory = Site(nodeHttpResources)
+    # add the form POST handler as a resource to the webserver
+    nodeConfigResource = NodeConfigResource(nodeConfFactory)
+    nodeConfigResourceName = config['server']['config_post_path'][1:]
+    nodeHttpResource.putChild(nodeConfigResourceName, nodeConfigResource)
+
+    webServerFactory = Site(nodeHttpResource)
 
     reactor.listenSSL(web_port, webServerFactory, contextFactory)
 
