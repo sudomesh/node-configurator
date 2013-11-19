@@ -36,6 +36,18 @@ class Config():
     def load():
         return json.load(open(CONFIG_FILE))
 
+
+# TODO implement this to build IPK file from configuration
+class IPKBuilder():
+
+    def __init__(self, nodeConfig):
+        self.nodeConfig = nodeConfig
+
+        
+
+    
+    
+
 class NodeConfigResource(Resource):
     isLeaf = True
     nodeConfFactory = None
