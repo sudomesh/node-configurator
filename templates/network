@@ -1,0 +1,23 @@
+config interface 'loopback'
+	option ifname 'lo'
+	option proto 'static'
+	option ipaddr '127.0.0.1'
+	option netmask '255.0.0.0'
+
+config interface 'lan'
+	option ifname 'eth0'
+	option proto 'dhcp'	
+
+config interface 'openmesh'
+	option type 'bridge'
+	option ifname 'open0 bat0'
+	option proto 'static'
+	option ipaddr '<mesh_ipv4_addr>'
+	option netmask '255.0.0.0'
+
+
+config interface 'priv'
+	option ifname 'priv0'
+	option proto 'static'
+	option ipaddr '<priv_ipv4_addr>'
+	option netmask '255.255.0.0'

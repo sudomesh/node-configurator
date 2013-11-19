@@ -22,7 +22,8 @@ from mesh_util import Config, \
                       MeshNodeFactory, \
                       NodeStaticResource, \
                       FakeNodePopulatorThread, \
-                      NodeConfigResource
+                      NodeConfigResource, \
+                      IPKBuilder
 
 config = None
 
@@ -119,8 +120,11 @@ class NodeProtocol(LineReceiver):
     # based on form POST data received
     # from the web app
     def configure(self, nodeConfig):
+        
+        builder = IPKBuilder(nodeConfig)
+        builder.build()
 
-        print "=== TODO implement ==="
+        # TODO implement the rest
 
 
     def lookup_org_from_mac(self, mac_addr):

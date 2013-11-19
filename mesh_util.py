@@ -6,12 +6,16 @@ import string
 import random
 import threading
 import re
+import os
+import shutil
 
 from random               import randint
 
 from twisted.web.resource import Resource
 from twisted.web.static   import File
-import os.path
+#import os.path
+
+from subprocess import call
 
 
 
@@ -42,11 +46,51 @@ class IPKBuilder():
 
     def __init__(self, nodeConfig):
         self.nodeConfig = nodeConfig
-
+        self.staging_dir  = 'per-node-config-'+self.nodeConfig['mac_addr'].replace(':', '-')
+        self.ipk_file = self.staging_dir+'.ipk'
         
+    def build(self):
+        os.chdir('staging')
+        
+        try:
+            os.remove(self.ipk_file)
+        except:
+            pass
 
-    
-    
+        try:
+            shutil.rmtree(self.staging_dir)
+        except:
+            pass
+
+        os.mkdir(self.staging_dir)
+        os.chdir(self.staging_dir)
+
+        shutil.copy("../../templates/debian-binary", "./")
+
+        os.mkdir("control")
+        shutil.copy("../../templates/control", "control/")
+
+        os.mkdir("data")
+        os.chdir("data")
+
+        # generate host ssh keys
+        os.makedirs("etc/ssh")
+        os.chdir("etc/ssh")
+        call(["expect", "-f", "../../../../../scripts/gen_ssh_keys.exp"])
+        os.chdir("../../")
+                
+        # package it up
+        os.chdir("../")
+        call(["tar", "-czf", "data.tar.gz", "data"])
+        call(["tar", "-czf", "control.tar.gz", "control"])
+        call(["tar", "-czf", '../'+self.ipk_file, "data.tar.gz", "control.tar.gz", "debian-binary"])
+        os.chdir("../")
+
+        # delete staging dir
+        shutil.rmtree(self.staging_dir)
+
+        return True
+        
 
 class NodeConfigResource(Resource):
     isLeaf = True

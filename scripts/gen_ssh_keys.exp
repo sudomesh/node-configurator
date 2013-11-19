@@ -2,7 +2,7 @@
 # a script for generating replacement ssh host keys.
 
 set timeout -1
-spawn ssh-keygen -t rsa -f out_rsa
+spawn ssh-keygen -t rsa -f ssh_host_rsa_key
 match_max 100000
 expect -exact "Generating public/private rsa key pair.\r
 Enter passphrase (empty for no passphrase): "
@@ -12,7 +12,7 @@ Enter same passphrase again: "
 send -- "\r"
 expect eof
 
-spawn ssh-keygen -t dsa -f out_dsa
+spawn ssh-keygen -t dsa -f ssh_host_dsa_key
 match_max 100000
 expect -exact "Generating public/private dsa key pair.\r
 Enter passphrase (empty for no passphrase): "
@@ -22,7 +22,7 @@ Enter same passphrase again: "
 send -- "\r"
 expect eof
 
-spawn ssh-keygen -t ecdsa -f out_ecdsa
+spawn ssh-keygen -t ecdsa -f ssh_host_ecdsa_key
 match_max 100000
 expect -exact "Generating public/private ecdsa key pair.\r
 Enter passphrase (empty for no passphrase): "
