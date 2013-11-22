@@ -41,7 +41,59 @@ class Config():
         return json.load(open(CONFIG_FILE))
 
 
-# TODO implement this to build IPK file from configuration
+class TemplateCompiler():
+
+    def __init__(self, nodeConfig, inputDir, outputDir):
+        self.nodeConfig = nodeConfig
+        self.inputDir = inputDir
+        self.outputDir = outputDir
+        
+    # writes data to file at path
+    # if either file or any dirs that are part of path 
+    # don't exist, then they are created
+    # if file exists, overwrite
+    def write_file(self, path, data):
+        d = os.path.dirname(path)
+        if not os.path.exists(d):
+            os.makedirs(d)
+
+        f = open(path, 'w')
+        f.write(data)
+        f.close()
+        
+    # takes uncompiled data (a template) as input
+    # returns compiled data
+    def compile_data(self, data):
+        for key in self.nodeConfig:
+            pattern = '<'+key+'>'
+            data = data.replace('<'+key+'>', self.nodeConfig[key])
+        return data
+
+    # check if a filename should be skipped
+    # returns True for skip, False for not skip
+    def should_skip(self, filename):
+        if re.match(".*~$", filename):
+            return True
+        if re.match("^#.*#$", filename):
+            return True
+        return False
+
+    # compile all files in input dir
+    # and put the results in the output dir
+    def compile(self):
+        for root, dirs, files in os.walk(self.inputDir):
+            for curfile in files:
+                if self.should_skip(curfile) == True:
+                    continue
+                inpath = os.path.join(root, curfile)
+                f = open(inpath, 'r')
+                template = f.read()
+                f.close()
+                compiled = self.compile_data(template)
+                outpath = os.path.join(self.outputDir, root, curfile)
+                self.write_file(outpath, compiled)
+            
+
 class IPKBuilder():
 
     def __init__(self, nodeConfig):

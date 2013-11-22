@@ -65,7 +65,6 @@ class ConfWebSocketProtocol(WebSocketServerProtocol):
 
     def connectionLost(self, reason):
         self.factory.lostConnection(self)
-#        self._nodePopulator.finish()
         WebSocketServerProtocol.connectionLost(self, reason)
 
 
@@ -99,8 +98,6 @@ class NodeProtocol(LineReceiver):
 
     def nodeConnected(self):
         print "Node connected"
-#        nodeData = MeshNodeFactory.buildFake()
-#        self.factory.nodeListChanged(nodeData)
 
     def sendConfigCommand(self):
         self.sendLine(NodeProtocol.COMMAND_NODE_SET_CONFIG)
@@ -161,13 +158,6 @@ class NodeProtocol(LineReceiver):
 
     def lineReceived(self, line):
         self.parseMessage(line)
-#        if line == NodeProtocol.COMMAND_NODE_HELLO:
-#        if line == config['protocol']['cmd_node_hello']:
-#            self.nodeConnected()
-#            self.sendConfigCommand()
-#        else:
-#            print "Received unrecognized command from Socket Client: " + line
-#            self.transport.loseConnection()
 
     def rawDataReceived(self, data):
         "As soon as any data is received, write it back."
