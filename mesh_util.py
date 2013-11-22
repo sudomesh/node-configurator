@@ -117,10 +117,10 @@ class IPKBuilder():
         os.mkdir(self.staging_dir)
         os.chdir(self.staging_dir)
 
-        shutil.copy("../../templates/debian-binary", "./")
+        shutil.copy("../../ipk_manifest/debian-binary", "./")
 
         os.mkdir("control")
-        shutil.copy("../../templates/control", "control/")
+        shutil.copy("../../ipk_manifest/control", "control/")
 
         os.mkdir("data")
         os.chdir("data")
