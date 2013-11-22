@@ -98,17 +98,12 @@ class IPKBuilder():
 
     def __init__(self, nodeConfig):
         self.nodeConfig = nodeConfig
-        self.staging_dir  = 'per-node-config-'+self.nodeConfig['mac_addr'].replace(':', '-')
-        self.ipk_file = self.staging_dir+'.ipk'
-        
-    def build(self):
-        os.chdir('staging')
-        
-        try:
-            os.remove(self.ipk_file)
-        except:
-            pass
+        dirname = 'per-node-config-'+self.nodeConfig['mac_addr'].replace(':', '-')
+        self.staging_dir  = os.path.join('staging', dirname)
+        self.ipk_file = os.path.join('ipks', dirname+'.ipk')
 
+    def stage(self):
+        
         try:
             shutil.rmtree(self.staging_dir)
         except:
@@ -129,19 +124,29 @@ class IPKBuilder():
         os.makedirs("etc/ssh")
         os.chdir("etc/ssh")
         call(["expect", "-f", "../../../../../scripts/gen_ssh_keys.exp"])
-        os.chdir("../../")
-                
-        # package it up
-        os.chdir("../")
+             
+        return self.staging_dir
+
+    # package it up
+    def build(self):
+
+        try:
+            os.remove(self.ipk_file)
+        except:
+            pass
+
+        os.chdir(self.staging_dir)
         call(["tar", "-czf", "data.tar.gz", "data"])
         call(["tar", "-czf", "control.tar.gz", "control"])
-        call(["tar", "-czf", '../'+self.ipk_file, "data.tar.gz", "control.tar.gz", "debian-binary"])
-        os.chdir("../")
+        os.chdir('../')
+        call(["tar", "-czf", self.ipk_file, "data.tar.gz", "control.tar.gz", "debian-binary"])
+
+
+    def clean(self):
 
         # delete staging dir
         shutil.rmtree(self.staging_dir)
 
-        return True
         
 
 class NodeConfigResource(Resource):

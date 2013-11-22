@@ -39,10 +39,6 @@ class ConfWebSocketProtocol(WebSocketServerProtocol):
 
     def onOpen(self):
         self.factory.gotConnection(self)
-        # send fake actions over the WebSocket every 5 seconds
-#        self._nodePopulator = FakeNodePopulatorThread()
-#        self._nodePopulator.setup(self, 5)
-#        self._nodePopulator.start()
 
     def _process_message(self, message):
         try:
@@ -119,9 +115,13 @@ class NodeProtocol(LineReceiver):
     def configure(self, nodeConfig):
         
         builder = IPKBuilder(nodeConfig)
+        stagingDir = builder.stage()
+        
+        dataDir = os.path.join(stagingDir, 'data')
+        tcompiler = TemplateCompiler(nodeConfig, 'templates', dataDir)
+        tcompiler.compile()
         builder.build()
-
-        # TODO implement the rest
+        builder.clean()
 
 
     def lookup_org_from_mac(self, mac_addr):

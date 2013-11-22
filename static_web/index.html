@@ -39,6 +39,19 @@
           Operator name:  <input type="text" name="operator_name" value="<%- conf.operator_name %>"><br>
           Operator email: <input type="text" name="operator_email" value="<%- conf.operator_email %>"><br>
           Operator phone: <input type="text" name="operator_phone" value="<%- conf.operator_phone %>"><br>
+
+          Hostname: <input type="text" name="hostname"> (whatever you want, but must be a valid hostname)<br>
+          This node's subnet: <input type="text" name="node_public_subnet_ipv4">(e.g: 10.0.1.0/24)<br>
+          batman-adv gateway mode: <input type="text" name="batman_gw_mode"> (e.g: "server 1mbit/256kbit" or "client" if no internet)<br>
+
+          Exit node IP: <input type="text" name="exit_node_ipv4_addr" value="192.157.242.65"> (e.g: 192.157.242.65)<br>
+          Relay node internet IP: <input type="text" name="relay_node_inet_ipv4_addr" value="198.56.144.47"> (e.g: 198.56.144.47)<br>
+          Relay node mesh IP: <input type="text" name="relay_node_mesh_ipv4_addr" value="10.42.0.10"> (e.g: 10.42.0.10)<br>
+          Private wifi SSID: <input type="text" name="private_wifi_ssid"> (e.g: Milliways)<br>
+          Private wifi key: <input type="text" name="private_wifi_key"> (e.g: endofuniverse42)<br>
+
+
+
           <input type="submit" id="node_detail_form_button" value="Configure node">
         </form>
       </div>
