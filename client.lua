@@ -116,124 +116,73 @@ function receive_and_write(conn, file_name, file_size)
   io.close(f)
 end
 
---[[
-
-File data has the following format:
-
-FILE:<filename_length>:<filename>:<md5_checksum_of_file>:<file_length_in_bytes>\n<file_data>
-
-Lengths are decimal values encoded as ascii strings.
-Yes this is not optimal but we'd need additional
-lua libraries if we wanted to decode and encode
-bytes into numbers and we wan to keep the firmware
-size as small as possible + these lua libraries
-are not part of the default OpenWRT distro.
-
---]]
-
-function receive_file(conn)
-
-  -- number of bytes encoding the file_size field
-  local file_name_size_length = 4
-  local file_name_size
-  local file_name
-  -- number of bytes encoding md5 checksum field
-  local md5_checksum_length = 32
-  local md5_checksum
-  -- number of bytes encoding file field
-  local file_size_length = 16
-  local file_size
-  local data
-  local err
-  local partial -- partial data received
-
-  data, err, partial = conn:receive('*l')
-
-  if not data then
-     print("Error: "..err)
-     return false
-  end
-  
-  local i
-  local j
-  i, j = string.find(data, "FILE:")
-  if not i == 1 then
-     print("Error: Got invalid response. Expecting 'FILE' got: "..data)
-     return false
-  end 
-
-  -- cut off the "FILE:" part
-  data = string.sub(data, j+1) 
-
---  print("[" .. data .. "]")
-
-  -- read the file name size
-  file_name_size = string.sub(data, 1, file_name_size_length)
-  file_name_size = tonumber(file_name_size)
-  data = string.sub(data, file_name_size_length + 2)
-
-  -- read the file name
-  file_name = string.sub(data, 1, file_name_size)
-  file_name = sanitize_filename(file_name)
-
-  -- TODO TESTING ONLY! REMOVE!
-  file_name = file_name .. ".receive"
-
-  data = string.sub(data, file_name_size + 2)
-
-  -- read the md5 checksum
-  md5_checksum = string.sub(data, 1, md5_checksum_length)
-  data = string.sub(data, md5_checksum_length + 2)
-  
-  -- read the file size
-  file_size = string.sub(data, 1, file_size_length)
-  file_size = tonumber(file_size)
---  data = string.sub(data, file_size_length + 2)
-  
-  -- receive the file
-  return receive_and_write(conn, file_name, file_size)
-end
-
---[[
-
-  Config responses have the following format:
-
-    CONFIG:<number_of_files>\n
-    <file_response(s)>
-
---]]
-
-function receive_config(conn)
-
-  local data
-  local err
-  local partial -- partial data received
-
-  data, err, partial = conn:receive('*l')
-
-  if not data then
-     print("Error: "..err)
-     return false
-  end
-  
-  -- TODO allow more than one file
-  if not string.find(data, "node::set_config") == 1 then
-     print("Error: Got invalid response. Expecting 'node::set_config' got: "..data)
-     return false
-  end
-
-  return receive_file(conn)
-end
-
---function send_node_info(conn)
---  conn:send("node::hello\n")
---end
-
 function load_config()
   local f = io.open(config_file_path)
   local data = f:read("*all")
   config = json.decode(data)
   io.close()
+end
+
+-- called when a configure msg and its associated
+-- file has been successfully received
+function configure_receive_completed(msg)
+  -- TODO implement this
+  print("Received the file: " .. msg['data']['file_name'])
+end
+
+-- keep receiving and handling received data
+function handle_receive(c)
+  local state = 'WAITING'
+  local line
+  local data
+  local msg
+  local err
+  local file = nil
+  
+  while true do
+    if state == 'WAITING' then
+      line, err = c:receive("*l")
+      if line == nil then
+        if err ~= 'closed' then
+          io.stderr:write("Socket error: " .. err)
+        end
+        break
+      end
+
+      msg = json.decode(line)
+      if msg == nil then
+        io.stderr:write("Received invalid json")
+        break
+      end
+
+      if msg['type'] == 'configure' then
+         print("configure message received")
+         file, err = io.open(msg['data']['file_name'], 'w+b')
+         if not file then
+           io.stderr:write("Could not create file: \"" .. msg['data']['file_name'] .. "\" Error: " .. err)
+           break
+         end
+         state = 'RECEIVING_FILE'
+      else
+        io.stderr.write("Unknown message type")
+      end
+
+    elseif state == 'RECEIVING_FILE' then
+      data, err, partial = c:receive(8192)
+      if data == nil then
+         if partial then
+           file:write(partial)
+         end
+         file:close()
+         configure_receive_completed(msg)
+         return true
+      end
+      file:write(data)
+    else
+      io.stderr.write("Got into unknown state")
+      return false
+    end
+  end
 end
 
 function begin_connection(ip, port)
@@ -249,17 +198,14 @@ function begin_connection(ip, port)
      os.exit(-1);
   end
 
-  -- receive the configuration from the server
-
---  c:send("node::hello\n")
+  -- send node info to server
   local node_info_msg = build_node_info_msg()
   c:send(node_info_msg)
 
--- TODO deal with received data
-  local data = c:receive("*l")
+  -- begin handling incoming data
+  handle_receive(c)
 
   c:close()
-
 end
 
 function find_server_and_connect()

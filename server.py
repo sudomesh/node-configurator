@@ -3,6 +3,7 @@
 import sys
 import json
 import os
+import hashlib
 
 from random import randint
 
@@ -25,7 +26,8 @@ from mesh_util import Config, \
                       FakeNodePopulatorThread, \
                       NodeConfigResource, \
                       IPKBuilder, \
-                      TemplateCompiler
+                      TemplateCompiler, \
+                      NodeDB
 
 config = None
 
@@ -97,10 +99,42 @@ class NodeProtocol(LineReceiver):
     def nodeConnected(self):
         print "Node connected"
 
-    def sendConfigCommand(self):
-        self.sendLine(NodeProtocol.COMMAND_NODE_SET_CONFIG)
-        self.sendLine("FILE:0003:foo:fee77fce8a77d5c5bc8948693d48f75f:0000000000000015")
-        self.transport.write("this is a hest\n")
+    # Send the configuration IPK to the node
+    # and ask the node to run a command
+    def sendConfig(self, ipkFilePath):
+
+        cmd = "opkg -i <filename>"
+        fileName = os.path.basename(ipkFilePath)
+        fileSize = os.path.getsize(ipkFilePath)
+
+        # calculate md5
+        md5 = hashlib.md5()
+        f = open(ipkFilePath, 'rb')
+        for line in f:
+            md5.update(line)
+        fileMD5 = md5.hexdigest()
+        f.seek(0)
+
+        msg = {
+            'type': 'configure',
+            'data': {
+                'file_name': fileName,
+                'file_size': fileSize,
+                'file_md5': fileMD5,
+                'run_cmd': cmd
+                }
+            }
+
+        msg_str = json.dumps(msg)
+        print "MSG: " + msg_str
+        self.sendLine(msg_str)
+        self.transport.write(f.read())
+        f.close()
+        self.transport.loseConnection()
+
+#        self.sendLine(NodeProtocol.COMMAND_NODE_SET_CONFIG)
+#        self.sendLine("FILE:0003:foo:fee77fce8a77d5c5bc8948693d48f75f:0000000000000015")
+#        self.transport.write("this is a hest\n")
 
     def connectionMade(self):
         print "Got connection"
@@ -115,16 +149,27 @@ class NodeProtocol(LineReceiver):
     # based on form POST data received
     # from the web app
     def configure(self, nodeConfig):
+
+        # Step 1: Assign unique IP and log to DB
+
+        db = NodeDB()
+        db.assign(nodeConfig)
         
+        # Step 2: Build the IPK
+
         builder = IPKBuilder(nodeConfig)
         stagingDir = builder.stage()
         
         dataDir = os.path.join(stagingDir, 'data')
         tcompiler = TemplateCompiler(nodeConfig, 'templates', dataDir)
         tcompiler.compile()
-        builder.build()
+        ipk_file_path = builder.build()
         builder.clean()
 
+        # Step 3: Send the IPK to the node
+
+        self.sendConfig(ipk_file_path)
+        
 
     def lookup_org_from_mac(self, mac_addr):
         mac = EUI(mac_addr)

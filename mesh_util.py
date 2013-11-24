@@ -42,8 +42,45 @@ class Config():
 
 
 
+# This is a fake node db
+# all it does is log the node info to a json file.
+# In the future a different class, exposing the same API
+# will be written to talk to the database app.
+# The database app may end up being NodeWatcher.
 class NodeDB():
-    
+
+    # db is the directory where json files are written
+    def __init__(self, db="fakedb"):
+        self.db = db
+        self.basePath = os.getcwd()
+        self.outPath = os.path.join(self.basePath, self.db)
+        
+    # This method is supposed to automatically
+    # assign e.g. IP addresses and UUIDs for nodes
+    # ensuring that they are unique
+    # unless they have been manually assigned
+    # This method also logs the assigned information
+    # to the database (or in this case flat files)
+    def assign(self, nodeConfig):
+        # no automatic assignment currently
+
+        if not nodeConfig or not nodeConfig['mac_addr'] or (nodeConfig['mac_addr'] == ''):
+            return False
+
+        outFileName = 'node-config-'+re.sub(':', '-', nodeConfig['mac_addr'])+'.json'
+        outFile = os.path.join(self.outPath, outFileName)
+
+        if not os.path.exists(self.outPath):
+            os.makedirs(self.outPath)
+
+        f = open(outFile, 'w')
+        f.write(json.dumps(nodeConfig))
+        f.close()
+        
+        return outFile
+        
+
+
 
 class TemplateCompiler():
 
@@ -148,11 +185,8 @@ class IPKBuilder():
 
         return self.staging_dir
 
-    # package it up
+    # Package the staged files into an IPK
     def build(self):
-
-        print("cur: " + os.getcwd())
-        print("staging: " + self.staging_dir)
 
         try:
             os.remove(self.ipk_file)
@@ -166,6 +200,7 @@ class IPKBuilder():
         call(["tar", "-czf", self.ipk_file, "data.tar.gz", "control.tar.gz", "debian-binary"])
 
         os.chdir(self.base_path)
+        return self.ipk_file
 
     def clean(self):
 
@@ -181,12 +216,16 @@ class NodeConfigResource(Resource):
     def __init__(self, nodeConfFactory):
         self.nodeConfFactory = nodeConfFactory
 
+    def sanitize_msg(self, msg_str):
+        # newlines are not allowed
+        return re.sub(r'[\r\n]', '', msg_str)
+
     def render_POST(self, request):
         reply = {}
         reply['type'] = "node_config_reply"
         reply['status'] = "success"
         msg_str = request.content.read()
-        print "Got: " + msg_str
+        msg_str = self.sanitize_msg(msg_str)
         msg = json.loads(msg_str)
         
         if not msg:
