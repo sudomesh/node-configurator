@@ -2,7 +2,12 @@
         "utils": {
                 "mdnssd_min": "/home/juul/projects/meshing/firmware/mdnssd-mini/mdnssd-min"
         },
+        "client": {
+                "download_path": "/tmp"
+        },
         "server": {
+                "configure_cmd": "opkg -i <file>",
+                "post_configure_cmd": "echo \"not actually rebooting\"",
                 "service_type": "_mpd._tcp.local",
                 "hostname": "nodeconf.local",
                 "port": "1337",

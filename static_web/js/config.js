@@ -62,8 +62,9 @@ var NodeConf = {
             if(!msg) {
                 return false;
             }
+
             switch(msg.type) {
-                
+
             case 'node_appeared':
                 if(!msg.data) {
                     return false;
@@ -73,6 +74,10 @@ var NodeConf = {
                 
             case 'node_disappeared':
                 this.remove_node(msg.data);
+                break;
+
+            case 'node_status':
+                this.update_node_status(msg.data);
                 break;
             default:
                 console.log("unknown message type received: "+ msg.type);
@@ -106,6 +111,27 @@ var NodeConf = {
     // generate id from mac address
     mac_to_id: function(mac) {
         return 'node-'+mac.replace(/:/g, '-');
+    },
+
+    update_node_status: function(data) {
+        if(data.cmd_output) {
+            // exit code is appended to output
+            // split it here
+            var lines = data.cmd_output.split("\n");
+            var line = lines.pop();
+            if(line == '') {
+                line = lines.pop();
+            }
+            data.exit_code = parseInt(line)
+            data.cmd_output = lines.join("\n");
+        }
+
+        if(data.status == 'success') {
+            $('#flash')[0].innerHTML += "<p>Node successfully configured. Rebooting node.</p>";
+        } else {
+            $('#flash')[0].innerHTML += "<p>Error running command on node: " + data.cmd_output + "</p>";
+            console.log("Exit code: " + data.exit_code);
+        }
     },
 
     add_node: function(node) {
@@ -175,10 +201,10 @@ var NodeConf = {
         // TODO report actual success or failure
         var msg = $.parseJSON(msg_str);
         if(!msg || (msg.status != 'success')) {
-            $('#flash').html("Error: " + msg.error);
+            $('#flash').html("<p>Error: " + msg.error + "</p>");
             return false;
         }
-        $('#flash').html("Node successfully configured!");
+        $('#flash').html("<p>Node configuration sent.</p>");
     },
 
     form_changed: function(e) {

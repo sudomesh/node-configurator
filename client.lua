@@ -86,36 +86,6 @@ function connect(ip, port)
   return conn
 end
 
-function receive_and_write(conn, file_name, file_size)
-  local f
-  local data, err
-  local to_read
-  local count = 0
-
-  f, err = io.open(file_name, 'w+b')
-  if not f then
-    return nil, err
-  end
-
-  while count < file_size do
-    if (file_size - count) < 4096 then
-      to_read = file_size - count
-    else
-      to_read = 4096
-    end
-
-    data, err = conn:receive(to_read)
-    if not data then
-      return nil, err
-    end
-    count = count + to_read
-
-    f:write(data)
-  end
-
-  io.close(f)
-end
-
 function load_config()
   local f = io.open(config_file_path)
   local data = f:read("*all")
@@ -123,20 +93,91 @@ function load_config()
   io.close()
 end
 
+-- run command
+-- first returned value is exit_status:
+--   true if exit code is 0, false otherwise
+-- second returned value is combined stdout and stderr output
+function run_command(cmd)
+  local output
+  local cmdp
+  local exit_code
+
+  -- this trickery does two things:
+  -- 1. output stderr to stdout
+  -- 2. output exit code to stdout
+  cmd = cmd.." 2>&1; echo $?"
+
+  cmdp = io.popen(cmd, 'r')
+  output = cmdp:read('*all')
+  cmdp:close()
+
+  -- actually only gets the last digit of exit code
+  -- but that's good enough
+  exit_code = string.match(output, ".*(%d+[\r\n])")
+  if exit_code ~= '0' then
+    return false, output
+  else
+    return true, output
+  end
+end
+
 -- called when a configure msg and its associated
 -- file has been successfully received
-function configure_receive_completed(msg)
-  -- TODO implement this
-  print("Received the file: " .. msg['data']['file_name'])
+function configure_receive_completed(c, msg, file_path)
+  local cmd
+  local cmdp
+  local output
+  local success
+
+  -- TODO implement this. It needs to actually run the cmd
+  print("Received the file: " .. msg.data.file_name)
+  if not msg.data.run_cmd then
+    return nil
+  end
+
+  cmd = string.gsub(msg.data.run_cmd, "<file>", file_path)
+
+  success, output = run_command(cmd)
+
+  reply = {
+    type = 'node_status',
+    data = {
+      status = "success",
+      cmd_output = output
+    }
+  }
+
+  if not success then
+    reply.data.status = "error"
+    c:send(json.encode(reply).."\n")
+    return false
+  end
+
+  cmd = msg.data.post_cmd
+  success, output = run_command(cmd)
+
+  reply.data.cmd_output = output
+
+  if not success then
+    reply.data.status = "error"
+    c:send(json.encode(reply).."\n")
+    return false
+  end
+
+  c:send(json.encode(reply).."\n")  
+  c:close()
 end
 
 -- keep receiving and handling received data
 function handle_receive(c)
   local state = 'WAITING'
+  local left_to_receive
+  local receive_bytes
   local line
   local data
   local msg
   local err
+  local file_path
   local file = nil
   
   while true do
@@ -146,21 +187,30 @@ function handle_receive(c)
         if err ~= 'closed' then
           io.stderr:write("Socket error: " .. err)
         end
-        break
+        return true
       end
 
       msg = json.decode(line)
       if msg == nil then
         io.stderr:write("Received invalid json")
-        break
+        return true
       end
 
-      if msg['type'] == 'configure' then
+      if msg.type == 'configure' then
          print("configure message received")
-         file, err = io.open(msg['data']['file_name'], 'w+b')
+         file_name = sanitize_filename(msg.data.file_name)
+         left_to_receive = msg.data.file_size
+         -- sanity check, configuration should 
+         -- not be more than two megabytes
+         if (left_to_receive > (1024 * 1024 * 2)) or (left_to_receive < 1) then
+           return true
+         end
+
+         file_path = config.client.download_path .. '/' .. file_name
+         file, err = io.open(file_path, 'w+b')
          if not file then
-           io.stderr:write("Could not create file: \"" .. msg['data']['file_name'] .. "\" Error: " .. err)
-           break
+           io.stderr:write("Could not create file: \"" .. file_path .. "\" Error: " .. err)
+           return true
          end
          state = 'RECEIVING_FILE'
       else
@@ -168,18 +218,30 @@ function handle_receive(c)
       end
 
     elseif state == 'RECEIVING_FILE' then
-      data, err, partial = c:receive(8192)
+      receive_bytes = 8192
+      if left_to_receive < receive_bytes then
+        receive_bytes = left_to_receive
+      end
+      data, err, partial = c:receive(left_to_receive)
+
       if data == nil then
          if partial then
            file:write(partial)
+           left_to_receive = 0
          end
          file:close()
-         configure_receive_completed(msg)
-         return true
+         configure_receive_completed(c, msg, file_path)
+         state = 'WAITING'
       end
+      left_to_receive = left_to_receive - string.len(data)
       file:write(data)
+      if left_to_receive <= 0 then
+        file:close()
+        configure_receive_completed(c, msg, file_path)
+        state = 'WAITING'
+      end
     else
-      io.stderr.write("Got into unknown state")
+      io.stderr:write("Got into unknown state: "..state)
       return false
     end
   end
@@ -188,6 +250,7 @@ end
 function begin_connection(ip, port)
 
   local c
+  local cont
 
   print("connecting to "..ip..":"..port)
   c = connect(ip, port)
@@ -203,7 +266,12 @@ function begin_connection(ip, port)
   c:send(node_info_msg)
 
   -- begin handling incoming data
-  handle_receive(c)
+  while true do 
+    ret = handle_receive(c)
+    if ret == false then
+      break
+    end
+  end
 
   c:close()
 end
@@ -287,16 +355,16 @@ end
 -- build json identifying this node
 function build_node_info_msg() 
 
-  local o = {}
-
-  o['type'] = "node_appeared"
-  o['data'] = {}
-  o['data']['mac_addr'] = get_node_mac()
-  o['data']['system_type'] = get_system_type()
+  local o = {
+    type = 'node_appeared',
+    data = {
+      mac_addr = get_node_mac(),
+      system_type = get_system_type()
+    }
+  }
 
   return json.encode(o).."\n"
 end
-
 
 load_config()
 

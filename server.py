@@ -103,7 +103,7 @@ class NodeProtocol(LineReceiver):
     # and ask the node to run a command
     def sendConfig(self, ipkFilePath):
 
-        cmd = "opkg -i <filename>"
+        # TODO get command from config file
         fileName = os.path.basename(ipkFilePath)
         fileSize = os.path.getsize(ipkFilePath)
 
@@ -121,20 +121,24 @@ class NodeProtocol(LineReceiver):
                 'file_name': fileName,
                 'file_size': fileSize,
                 'file_md5': fileMD5,
-                'run_cmd': cmd
+                'run_cmd': config['server']['configure_cmd'],
+                'post_cmd': config['server']['post_configure_cmd']
                 }
             }
 
+        # send the message
         msg_str = json.dumps(msg)
-        print "MSG: " + msg_str
         self.sendLine(msg_str)
-        self.transport.write(f.read())
+        # send the file
+        while True:
+            data = f.read(8192)
+            if data == '':
+                break
+            print "========== writing!!! " + str(len(data))
+            self.transport.write(data)
         f.close()
-        self.transport.loseConnection()
 
-#        self.sendLine(NodeProtocol.COMMAND_NODE_SET_CONFIG)
-#        self.sendLine("FILE:0003:foo:fee77fce8a77d5c5bc8948693d48f75f:0000000000000015")
-#        self.transport.write("this is a hest\n")
+#        self.transport.loseConnection()
 
     def connectionMade(self):
         print "Got connection"
@@ -200,6 +204,8 @@ class NodeProtocol(LineReceiver):
 
         if msg['type'] == 'node_appeared':
             self.gotNodeInfo(msg)
+        elif msg['type'] == 'node_status':
+            self.factory.forwardToWebSockets(msg)
         else:
             print "Unknown message"
 
@@ -227,6 +233,9 @@ class NodeConfFactory(protocol.Factory):
 
         return False
             
+    def forwardToWebSockets(self, msg):
+        if self.nodeWSFactory:
+            self.nodeWSFactory.sendToConnected(msg)
 
     def nodeAppeared(self, proto):
         self.nodes.append(proto)
@@ -248,15 +257,18 @@ class NodeWSFactory(WebSocketServerFactory):
     protocol = ConfWebSocketProtocol
     websockets = [] # connected websockets
 
+    def sendToConnected(self, msg):
+        for websocket in self.websockets:
+            websocket.sendMsg(msg)
+
     def nodeAppeared(self, nodeInfo):
 
-        for websocket in self.websockets:
-            log.msg("Sending updated nodelist to one of %d websockets" % len(self.websockets))
-            msg = {}
-            msg['type'] = 'node_appeared'
-            msg['data'] = nodeInfo
-            websocket.sendMsg(msg)
-            
+        log.msg("Sending updated nodelist to one of %d websockets" % len(self.websockets))
+        msg = {}
+        msg['type'] = 'node_appeared'
+        msg['data'] = nodeInfo
+        self.sendToConnected(msg)
+
     def nodeDisappeared(self, nodeInfo):
 
         for websocket in self.websockets:
