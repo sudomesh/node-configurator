@@ -41,12 +41,22 @@ class Config():
         return json.load(open(CONFIG_FILE))
 
 
+
+class NodeDB():
+    
+
 class TemplateCompiler():
 
     def __init__(self, nodeConfig, inputDir, outputDir):
         self.nodeConfig = nodeConfig
+        self.base_path = os.getcwd()
         self.inputDir = inputDir
+        if not os.path.isabs(self.inputDir):
+            self.inputDir = os.path.join(self.base_path, self.inputDir)
         self.outputDir = outputDir
+        if not os.path.isabs(self.outputDir):
+            self.outputDir = os.path.join(self.base_path, self.outputDir)
+
         
     # writes data to file at path
     # if either file or any dirs that are part of path 
@@ -65,6 +75,10 @@ class TemplateCompiler():
     # returns compiled data
     def compile_data(self, data):
         for key in self.nodeConfig:
+            val = self.nodeConfig[key]
+            val = re.sub(r'\s+', '', val)
+            if val == '':
+                continue
             pattern = '<'+key+'>'
             data = data.replace('<'+key+'>', self.nodeConfig[key])
         return data
@@ -81,7 +95,8 @@ class TemplateCompiler():
     # compile all files in input dir
     # and put the results in the output dir
     def compile(self):
-        for root, dirs, files in os.walk(self.inputDir):
+        os.chdir(self.inputDir);
+        for root, dirs, files in os.walk('.'):
             for curfile in files:
                 if self.should_skip(curfile) == True:
                     continue
@@ -91,16 +106,20 @@ class TemplateCompiler():
                 f.close()
                 compiled = self.compile_data(template)
                 outpath = os.path.join(self.outputDir, root, curfile)
+                print "writing to: " + outpath
                 self.write_file(outpath, compiled)
-            
+        os.chdir(self.base_path)
+
 
 class IPKBuilder():
 
     def __init__(self, nodeConfig):
         self.nodeConfig = nodeConfig
+        self.base_path = os.getcwd()
         dirname = 'per-node-config-'+self.nodeConfig['mac_addr'].replace(':', '-')
-        self.staging_dir  = os.path.join('staging', dirname)
-        self.ipk_file = os.path.join('ipks', dirname+'.ipk')
+        self.staging_dir  = os.path.join(self.base_path, 'staging', dirname)
+        self.ipk_file = os.path.join(self.base_path, 'ipks', dirname+'.ipk')
+        
 
     def stage(self):
         
@@ -109,7 +128,7 @@ class IPKBuilder():
         except:
             pass
 
-        os.mkdir(self.staging_dir)
+        os.makedirs(self.staging_dir)
         os.chdir(self.staging_dir)
 
         shutil.copy("../../ipk_manifest/debian-binary", "./")
@@ -125,10 +144,15 @@ class IPKBuilder():
         os.chdir("etc/ssh")
         call(["expect", "-f", "../../../../../scripts/gen_ssh_keys.exp"])
              
+        os.chdir(self.base_path)
+
         return self.staging_dir
 
     # package it up
     def build(self):
+
+        print("cur: " + os.getcwd())
+        print("staging: " + self.staging_dir)
 
         try:
             os.remove(self.ipk_file)
@@ -136,11 +160,12 @@ class IPKBuilder():
             pass
 
         os.chdir(self.staging_dir)
+
         call(["tar", "-czf", "data.tar.gz", "data"])
         call(["tar", "-czf", "control.tar.gz", "control"])
-        os.chdir('../')
         call(["tar", "-czf", self.ipk_file, "data.tar.gz", "control.tar.gz", "debian-binary"])
 
+        os.chdir(self.base_path)
 
     def clean(self):
 

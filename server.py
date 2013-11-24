@@ -2,6 +2,7 @@
 
 import sys
 import json
+import os
 
 from random import randint
 
@@ -23,7 +24,8 @@ from mesh_util import Config, \
                       NodeStaticResource, \
                       FakeNodePopulatorThread, \
                       NodeConfigResource, \
-                      IPKBuilder
+                      IPKBuilder, \
+                      TemplateCompiler
 
 config = None
 
