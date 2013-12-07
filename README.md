@@ -31,12 +31,10 @@ coreutils
 
 Requirements for lua client stuff:
 
-openssl
-mdnsd
-lua
-luasocket
-luasec
-coreutils
+openssl 
+lua5.1 
+luasocket 
+liblua5.1-sec1 
 
 Also, see more documentation in the comments in ssl_server.py and ssl_client.lua
 
@@ -46,7 +44,7 @@ Also, see more documentation in the comments in ssl_server.py and ssl_client.lua
 
 For a typical modern Debian / Ubuntu desktop machine first install some prerequisites:
 
-  sudo aptitude install python avahi-daemon python-virtualenv python-pip python-openssl python-dbus python-avahi build-essential openssl-dev expect
+  sudo aptitude install python avahi-daemon python-virtualenv python-pip python-openssl python-dbus python-avahi build-essential libssl-dev expect
 
 Install the extra required python packages in a virtual python environment:
 
