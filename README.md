@@ -27,7 +27,7 @@ dbus
 avahi-daemon
 python
 python-twisted
-md5sum
+coreutils
 
 Requirements for lua client stuff:
 
@@ -36,7 +36,7 @@ mdnsd
 lua
 luasocket
 luasec
-md5sum
+coreutils
 
 Also, see more documentation in the comments in ssl_server.py and ssl_client.lua
 
