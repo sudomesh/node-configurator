@@ -70,14 +70,21 @@ class NodeDB():
         if not nodeConfig or not nodeConfig['mac_addr'] or (nodeConfig['mac_addr'] == ''):
             return False
 
+        # TODO also make a local backup after IP assigned?
         self.local_backup(nodeConfig)
+        
+        nodeConfig['type'] = 'node'
 
         params = urllib.urlencode({'data': json.dumps(nodeConfig)})
         headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
         con = httplib.HTTPConnection(self.db_host)
         con.request("POST", "/nodes", params, headers)
         response = con.getresponse()
-        print response.status, response.reason
+        # TODO check response code
+        data_str = response.read() 
+        print "DATA STR: " + data_str
+        msg = json.loads(data_str)
+        return msg['data']
             
 #        create_url = str(self.db_url + 'nodes')
 #        d = httpRequest(

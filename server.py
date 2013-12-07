@@ -135,7 +135,6 @@ class NodeProtocol(LineReceiver):
             data = f.read(8192)
             if data == '':
                 break
-            print "========== writing!!! " + str(len(data))
             self.transport.write(data)
         f.close()
 
@@ -158,8 +157,13 @@ class NodeProtocol(LineReceiver):
         # Step 1: Assign unique IP and log to DB
         
         # create the node in the database
-        self.factory.node_db.create(nodeConfig)
-        return
+        # and receive the nodeConfig with assigned
+        # IP address and unique id
+        nodeConfig = self.factory.node_db.create(nodeConfig)
+        if not nodeConfig:
+            # TODO bubble error up to browser
+            print "-- Error talking to node database"
+            return
 
         # Step 2: Build the IPK
 
