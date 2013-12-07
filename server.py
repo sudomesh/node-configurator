@@ -11,6 +11,7 @@ from twisted.python import log
 from twisted.internet import reactor, ssl, protocol
 from twisted.web.server import Site
 from twisted.protocols.basic import LineReceiver
+from twisted.web.client import Agent
 
 from autobahn.websocket import WebSocketServerFactory, \
                                WebSocketServerProtocol, \
@@ -37,7 +38,7 @@ class ConfWebSocketProtocol(WebSocketServerProtocol):
     COMMAND_KEY     = 'command'
     SOCKET_ID_KEY   = 'socket_id'
     NODE_OBJECT_KEY = 'node_obj'
-
+    
     def sendMsg(self, msg):
         self.sendMessage(json.dumps(msg), False)
 
@@ -95,7 +96,7 @@ class ChainedOpenSSLContextFactory(ssl.DefaultOpenSSLContextFactory):
 class NodeProtocol(LineReceiver):
     """Node Configurator protocol"""
     delimiter = "\n"
-
+    
     def nodeConnected(self):
         print "Node connected"
 
@@ -153,12 +154,13 @@ class NodeProtocol(LineReceiver):
     # based on form POST data received
     # from the web app
     def configure(self, nodeConfig):
-
-        # Step 1: Assign unique IP and log to DB
-
-        db = NodeDB()
-        db.assign(nodeConfig)
         
+        # Step 1: Assign unique IP and log to DB
+        
+        # create the node in the database
+        self.factory.node_db.create(nodeConfig)
+        return
+
         # Step 2: Build the IPK
 
         builder = IPKBuilder(nodeConfig)
@@ -221,6 +223,9 @@ class NodeConfFactory(protocol.Factory):
     protocol = NodeProtocol
     nodeWSFactory = None
     nodes = [] # connected nodes
+
+    def __init__(self, node_db):
+        self.node_db = node_db
 
     # takes the node config data submitted from the from
     # in the web app and runs configuration for the node
@@ -309,12 +314,18 @@ def start():
     log.startLogging(sys.stdout)
 
     contextFactory = ChainedOpenSSLContextFactory(
-        privateKeyFileName="certs/nodeconf.key",
-        certificateChainFileName="certs/nodeconf_chain.crt", 
-        sslmethod = ssl.SSL.TLSv1_METHOD)
+      privateKeyFileName="certs/nodeconf.key",
+      certificateChainFileName="certs/nodeconf_chain.crt", 
+      sslmethod = ssl.SSL.TLSv1_METHOD)
+
+        
+    db = NodeDB(
+        db_host=config['server']['db_host'],
+        )
+
 
     # create the node configuration server
-    nodeConfFactory = NodeConfFactory()
+    nodeConfFactory = NodeConfFactory(node_db=db)
     reactor.listenSSL(int(config['server']['port']), nodeConfFactory, contextFactory)
     # create the WebSocket server.
 #    webSocketFactory = WebSocketServerFactory("wss://localhost:%d" % WEBSERVER_PORT, debug=False)

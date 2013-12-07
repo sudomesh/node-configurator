@@ -8,16 +8,20 @@ import threading
 import re
 import os
 import shutil
+import urllib
 
 from random               import randint
 
 from twisted.web.resource import Resource
 from twisted.web.static   import File
-#import os.path
-
+from twisted.web.http_headers import Headers
 from subprocess import call
 
+# kinda ugly to use httplib when we're also using twisted
+# but twisted http requests are rediculously overcomplicated
+import httplib
 
+#from http_request import httpRequest
 
 # Implementation specific constants.
 STATIC_DIR_PATH = "./static_web"
@@ -32,7 +36,6 @@ CONFIG_FILE = "config/common.json"
 #    COMMAND_NODE_HELLO        = "node::hello"
 #    COMMAND_NODE_SET_CONFIG   = "node::set_config"
 #    COMMAND_NODE_SET_FIRMWARE = "node::set_firmware"
-
 
 class Config():
 
@@ -50,10 +53,11 @@ class Config():
 class NodeDB():
 
     # db is the directory where json files are written
-    def __init__(self, db="fakedb"):
-        self.db = db
+    def __init__(self, db_host=None):
+        self.db_host = db_host
+        self.local_backup_dir = "fakedb"
         self.basePath = os.getcwd()
-        self.outPath = os.path.join(self.basePath, self.db)
+        self.outPath = os.path.join(self.basePath, self.local_backup_dir)
         
     # This method is supposed to automatically
     # assign e.g. IP addresses and UUIDs for nodes
@@ -61,23 +65,54 @@ class NodeDB():
     # unless they have been manually assigned
     # This method also logs the assigned information
     # to the database (or in this case flat files)
-    def assign(self, nodeConfig):
-        # no automatic assignment currently
-
+    def create(self, nodeConfig):
+        
         if not nodeConfig or not nodeConfig['mac_addr'] or (nodeConfig['mac_addr'] == ''):
             return False
 
+        self.local_backup(nodeConfig)
+
+        params = urllib.urlencode({'data': json.dumps(nodeConfig)})
+        headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
+        con = httplib.HTTPConnection(self.db_host)
+        con.request("POST", "/nodes", params, headers)
+        response = con.getresponse()
+        print response.status, response.reason
+            
+#        create_url = str(self.db_url + 'nodes')
+#        d = httpRequest(
+#            self.agent,
+#            create_url,
+#            method = 'POST',
+#            values = {'data': json.dumps(nodeConfig)},
+#            callback = lol)
+        
+    def local_backup(self, nodeConfig):
         outFileName = 'node-config-'+re.sub(':', '-', nodeConfig['mac_addr'])+'.json'
         outFile = os.path.join(self.outPath, outFileName)
 
         if not os.path.exists(self.outPath):
             os.makedirs(self.outPath)
-
+        
         f = open(outFile, 'w')
         f.write(json.dumps(nodeConfig))
         f.close()
         
         return outFile
+
+        # TODO calculate the following:
+        # mesh_dhcp_range_start
+        # mesh_ipv4_addr
+        # -- both calculated from node_public_subnet_ipv4
+        # autogen wifi key and ssid if not present
+
+        # TODO assign the following:
+        # private_subnet_ipv4_addr (172.30.0.1) 
+        # ^-- Hrm won't this always be the same?
+        # node_public_subnet_ipv4
+        # relay_node_mesh_ipv4_addr
+        # exit_node_ipv4_addr
+
         
 
 

@@ -6,6 +6,7 @@
                 "download_path": "/tmp"
         },
         "server": {
+                "db_host": "localhost:3000",
                 "configure_cmd": "opkg -i <file>",
                 "post_configure_cmd": "echo \"not actually rebooting\"",
                 "service_type": "_mpd._tcp.local",
