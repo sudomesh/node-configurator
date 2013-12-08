@@ -6,6 +6,7 @@
                 "download_path": "/tmp"
         },
         "server": {
+                "wordlist": "config/wordlist_simple",
                 "db_host": "localhost:3000",
                 "configure_cmd": "echo hurray",
                 "configure_cmd_old": "opkg -i <file>",

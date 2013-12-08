@@ -81,9 +81,6 @@ class NodeDB():
         
         return outFile
 
-        # TODO assing:
-        # ssh_authorized_keys
-
         # TODO calculate the following:
         # mesh_dhcp_range_start
         # mesh_ipv4_addr
@@ -97,17 +94,17 @@ class NodeDB():
         # exit_node_ipv4_addr
 
         # TODO assign if not set
-        # root_password
         # private_wifi_key
         # private_wifi_ssid
     
 
 class TemplateCompiler():
 
-    def __init__(self, nodeConfig, inputDir, outputDir):
+    def __init__(self, nodeConfig, inputDir, outputDir, wordlist):
         self.nodeConfig = nodeConfig
         self.base_path = os.getcwd()
         self.inputDir = inputDir
+        self.wordlist = wordlist
         if not os.path.isabs(self.inputDir):
             self.inputDir = os.path.join(self.base_path, self.inputDir)
         self.outputDir = outputDir
@@ -161,15 +158,19 @@ class TemplateCompiler():
     # upper and lower case letters, numbers and # and !
     def generate_root_password(self, length):
         if self.nodeConfig['root_password']:
-            chars = string.letters + string.digits + '#!'
-
-            # if this check fails, 
-            # there will be bias in passwords
-            if len(chars) != 64:
-                raise "password generator security compromised!"
-            self.nodeConfig['root_password'] = ''.join(chars[ord(os.urandom(1)) % 64] for _ in xrange(14))
-        
+            self.nodeConfig['root_password'] = self.generate_password(length)
         self.hash_root_password()
+
+    def generate_password(self, length):
+        chars = string.letters + string.digits + '#!'
+        
+        # if this check fails, 
+        # there will be bias in passwords
+        if len(chars) != 64:
+            raise "password generator security compromised!"
+        password = ''.join(chars[ord(os.urandom(1)) % 64] for _ in xrange(14))
+        return password
+        
 
     # read all authorized keys from the authorized_keys/ dir
     # and combine them and add them to nodeConfig
@@ -185,9 +186,29 @@ class TemplateCompiler():
                 f.close()
         self.nodeConfig['ssh_authorized_keys'] = authd_keys
 
+    # generate a friendly wifi ssid
+    # with specified number of words and numbers
+    def generate_wifi_ssid(self, words, numbers=0):
+        ssid = ''
+        f = open(os.path.join(self.base_path, self.wordlist))
+        wordlist = f.readlines()
+        f.close()
+
+        # get random word(s)
+        for i in xrange(words):
+            ssid += wordlist[random.randint(0, len(wordlist)-1)].strip()
+
+        # get random number(s)
+        if numbers > 0:
+            valid_numbers = '0123456789'
+            ssid += ''.join(valid_numbers[random.randint(0, len(valid_numbers)-1)] for _ in xrange(numbers))
+
+        return ssid
+
     # compile all files in input dir
     # and put the results in the output dir
     def compile(self):
+        self.generate_wifi_ssid()
         self.generate_root_password(12)
         self.read_authorized_keys()
 

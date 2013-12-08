@@ -171,7 +171,7 @@ class NodeProtocol(LineReceiver):
         stagingDir = builder.stage()
         
         dataDir = os.path.join(stagingDir, 'data')
-        tcompiler = TemplateCompiler(nodeConfig, 'templates', dataDir)
+        tcompiler = TemplateCompiler(nodeConfig, 'templates', dataDir, config['server']['wordlist'])
         tcompiler.compile()
         ipk_file_path = builder.build()
         builder.clean()
