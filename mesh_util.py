@@ -9,13 +9,14 @@ import re
 import os
 import shutil
 import urllib
+import subprocess
 
 from random               import randint
 
 from twisted.web.resource import Resource
 from twisted.web.static   import File
 from twisted.web.http_headers import Headers
-from subprocess import call
+
 
 # kinda ugly to use httplib when we're also using twisted
 # but twisted http requests are rediculously overcomplicated
@@ -28,28 +29,12 @@ STATIC_DIR_PATH = "./static_web"
 INDEX_FILE_NAME = "index.html"
 CONFIG_FILE = "config/common.json"
 
-#class NodeProtocol:
-#    UI_NODE_CONNECTED    = 'ui::node_connected'
-#    UI_NODE_DISCONNECTED = 'ui::node_disconnected'
-#    COMMAND_NODE_HAS_NEW_CONFIG   = "node::has_new_config"
-#    COMMAND_NODE_WANTS_NEW_CONFIG = "node::wants_new_config"
-#    COMMAND_NODE_HELLO        = "node::hello"
-#    COMMAND_NODE_SET_CONFIG   = "node::set_config"
-#    COMMAND_NODE_SET_FIRMWARE = "node::set_firmware"
-
 class Config():
 
     @staticmethod
     def load():
         return json.load(open(CONFIG_FILE))
 
-
-
-# This is a fake node db
-# all it does is log the node info to a json file.
-# In the future a different class, exposing the same API
-# will be written to talk to the database app.
-# The database app may end up being NodeWatcher.
 class NodeDB():
 
     # db is the directory where json files are written
@@ -59,12 +44,9 @@ class NodeDB():
         self.basePath = os.getcwd()
         self.outPath = os.path.join(self.basePath, self.local_backup_dir)
         
-    # This method is supposed to automatically
-    # assign e.g. IP addresses and UUIDs for nodes
-    # ensuring that they are unique
-    # unless they have been manually assigned
-    # This method also logs the assigned information
-    # to the database (or in this case flat files)
+    # This method creates the node in the database
+    # and gets e.g. IP addresses and UUIDs assigned
+    # from the database at the same time.
     def create(self, nodeConfig):
         
         if not nodeConfig or not nodeConfig['mac_addr'] or (nodeConfig['mac_addr'] == ''):
@@ -85,15 +67,7 @@ class NodeDB():
         print "DATA STR: " + data_str
         msg = json.loads(data_str)
         return msg['data']
-            
-#        create_url = str(self.db_url + 'nodes')
-#        d = httpRequest(
-#            self.agent,
-#            create_url,
-#            method = 'POST',
-#            values = {'data': json.dumps(nodeConfig)},
-#            callback = lol)
-        
+                    
     def local_backup(self, nodeConfig):
         outFileName = 'node-config-'+re.sub(':', '-', nodeConfig['mac_addr'])+'.json'
         outFile = os.path.join(self.outPath, outFileName)
@@ -107,11 +81,13 @@ class NodeDB():
         
         return outFile
 
+        # TODO assing:
+        # ssh_authorized_keys
+
         # TODO calculate the following:
         # mesh_dhcp_range_start
         # mesh_ipv4_addr
         # -- both calculated from node_public_subnet_ipv4
-        # autogen wifi key and ssid if not present
 
         # TODO assign the following:
         # private_subnet_ipv4_addr (172.30.0.1) 
@@ -120,9 +96,11 @@ class NodeDB():
         # relay_node_mesh_ipv4_addr
         # exit_node_ipv4_addr
 
-        
-
-
+        # TODO assign if not set
+        # root_password
+        # private_wifi_key
+        # private_wifi_ssid
+    
 
 class TemplateCompiler():
 
@@ -171,9 +149,48 @@ class TemplateCompiler():
             return True
         return False
 
+    # uses mkpasswd to generate a salted password hash
+    # usable in a /etc/shadow file
+    def hash_root_password(self):
+        sub = subprocess.Popen(["/usr/bin/mkpasswd", "--method=md5", "-s"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        sub.stdin.write(self.nodeConfig['root_password']+"\n")
+        hashline = sub.stdout.read()
+        self.nodeConfig['root_password_hash'] = hashline
+
+    # generate a random password consisting of
+    # upper and lower case letters, numbers and # and !
+    def generate_root_password(self, length):
+        if self.nodeConfig['root_password']:
+            chars = string.letters + string.digits + '#!'
+
+            # if this check fails, 
+            # there will be bias in passwords
+            if len(chars) != 64:
+                raise "password generator security compromised!"
+            self.nodeConfig['root_password'] = ''.join(chars[ord(os.urandom(1)) % 64] for _ in xrange(14))
+        
+        self.hash_root_password()
+
+    # read all authorized keys from the authorized_keys/ dir
+    # and combine them and add them to nodeConfig
+    def read_authorized_keys(self):
+        authd_keys = ''
+        for root, dirs, files in os.walk('authorized_keys'):
+            for curfile in files:
+                if self.should_skip(curfile) == True:
+                    continue
+                
+                f = open(os.path.join(root, curfile))
+                authd_keys += f.read()+"\n"
+                f.close()
+        self.nodeConfig['ssh_authorized_keys'] = authd_keys
+
     # compile all files in input dir
     # and put the results in the output dir
     def compile(self):
+        self.generate_root_password(12)
+        self.read_authorized_keys()
+
         os.chdir(self.inputDir);
         for root, dirs, files in os.walk('.'):
             for curfile in files:
@@ -221,7 +238,7 @@ class IPKBuilder():
         # generate host ssh keys
         os.makedirs("etc/ssh")
         os.chdir("etc/ssh")
-        call(["expect", "-f", "../../../../../scripts/gen_ssh_keys.exp"])
+        subprocess.call(["expect", "-f", "../../../../../scripts/gen_ssh_keys.exp"])
              
         os.chdir(self.base_path)
 
@@ -237,9 +254,9 @@ class IPKBuilder():
 
         os.chdir(self.staging_dir)
 
-        call(["tar", "-czf", "data.tar.gz", "data"])
-        call(["tar", "-czf", "control.tar.gz", "control"])
-        call(["tar", "-czf", self.ipk_file, "data.tar.gz", "control.tar.gz", "debian-binary"])
+        subprocess.call(["tar", "-czf", "data.tar.gz", "data"])
+        subprocess.call(["tar", "-czf", "control.tar.gz", "control"])
+        subprocess.call(["tar", "-czf", self.ipk_file, "data.tar.gz", "control.tar.gz", "debian-binary"])
 
         os.chdir(self.base_path)
         return self.ipk_file

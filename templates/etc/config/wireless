@@ -30,6 +30,6 @@ config wifi-iface
 	option ifname 'priv0'
 	option network 'priv'
 	option encryption 'psk2'
-	option key '<private-wifi-key>'
+	option key '<private_wifi_key>'
 	option mode 'ap'
-	option ssid '<private-wifi-ssid>'
+	option ssid '<private_wifi_ssid>'
