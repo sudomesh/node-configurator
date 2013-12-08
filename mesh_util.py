@@ -92,10 +92,6 @@ class NodeDB():
         # node_public_subnet_ipv4
         # relay_node_mesh_ipv4_addr
         # exit_node_ipv4_addr
-
-        # TODO assign if not set
-        # private_wifi_key
-        # private_wifi_ssid
     
 
 class TemplateCompiler():
@@ -157,7 +153,7 @@ class TemplateCompiler():
     # generate a random password consisting of
     # upper and lower case letters, numbers and # and !
     def generate_root_password(self, length):
-        if self.nodeConfig['root_password']:
+        if not self.nodeConfig['root_password']:
             self.nodeConfig['root_password'] = self.generate_password(length)
         self.hash_root_password()
 
@@ -189,6 +185,8 @@ class TemplateCompiler():
     # generate a friendly wifi ssid
     # with specified number of words and numbers
     def generate_wifi_ssid(self, words, numbers=0):
+        if self.nodeConfig['private_wifi_ssid']:
+            return
         ssid = ''
         f = open(os.path.join(self.base_path, self.wordlist))
         wordlist = f.readlines()
@@ -203,12 +201,17 @@ class TemplateCompiler():
             valid_numbers = '0123456789'
             ssid += ''.join(valid_numbers[random.randint(0, len(valid_numbers)-1)] for _ in xrange(numbers))
 
-        return ssid
+        self.nodeConfig['private_wifi_ssid'] = ssid
+
+    def generate_wifi_key(self, length):
+        if not self.nodeConfig['private_wifi_key']:
+            self.nodeConfig['private_wifi_key'] = self.generate_password(length)
 
     # compile all files in input dir
     # and put the results in the output dir
     def compile(self):
         self.generate_wifi_ssid()
+        self.generate_wifi_key(12)
         self.generate_root_password(12)
         self.read_authorized_keys()
 
