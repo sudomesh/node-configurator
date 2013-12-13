@@ -5,7 +5,7 @@ require("ssl")
 require("string")
 json = require("dkjson-min")
 
-config_file_path = "config/common.json"
+config_file_path = "/etc/nodeconf/config.json"
 
 config = nil
 
@@ -37,17 +37,6 @@ config = nil
 
     7. Disable autostart of this script and reboot.
 
-  This script still needs:
-
-    * A separate config file
-    * To use DNS-SD to find the node conf server.
-    * Ability to receive more than one file
-    * To run md5sum to verify recevied files
-    * To install packages after they are received.
-    * To report status back to server and reboot
-    * Sane maximum caps on received files
-    * and more...
-
 --]]
 
 
@@ -72,7 +61,7 @@ function connect(ip, port)
     mode = "client",
     protocol = "tlsv1",
   --  capath = "/etc/ssl/certs",
-    cafile = "certs/ca_root.crt",
+    cafile = "/etc/nodeconf/certs/ca_root.crt",
   -- key = "/etc/certs/clientkey.pem",
   --  certificate = "/etc/certs/client.pem",
     verify = "peer",
@@ -258,7 +247,7 @@ function begin_connection(ip, port)
   if not c then
      print("Failed to connect")
      conn:close()
-     os.exit(-1);
+     return false
   end
 
   -- send node info to server
@@ -274,6 +263,11 @@ function begin_connection(ip, port)
   end
 
   c:close()
+  return true
+end
+
+function sleep(n)
+  os.execute("sleep " .. tonumber(n))
 end
 
 function find_server_and_connect()
@@ -283,30 +277,33 @@ function find_server_and_connect()
   local hostname
   local ip
   local port
+  local res
 
---TODO this is a temporary thing for development
-  begin_connection("127.0.0.1", 1337)
-
---[[
-  mdns = io.popen(config.utils.mdnssd_min..' '..config.server.service_type, 'r')
-
--- TODO support connecting to multiple servers
+-- keep trying to connect
   while true do
-    line = mdns:read("*line")
-    if line == nil then
-      break
+    mdns = io.popen(config.utils.mdnssd_min..' '..config.server.service_type, 'r')
+
+    while true do
+      line = mdns:read("*line")
+      if line == nil then
+        break
+      end
+      hostname, ip, port = string.match(line, "(.+)%s+(.+)%s+(.+)")
+  --    print("host: "..hostname.." | ip: "..ip.." | port: "..port)
+      if hostname ~= nil and ip ~= nil and port ~= nil then
+        res = begin_connection(ip, port)
+        if res == true then
+          mdns:close()
+          return true
+        end
+      end
     end
-    hostname, ip, port = string.match(line, "(.+)%s+(.+)%s+(.+)")
---    print("host: "..hostname.." | ip: "..ip.." | port: "..port)
-    if hostname ~= nil and ip ~= nil and port ~= nil then
-      begin_connection(ip, port)
-        mdns:close()
-      return true
-    end
+    mdns:close()
+    print("Could not connect. Sleeping for 5 seconds")
+    sleep(5)
   end
-  mdns:close()
+
   return false
---]]
 end
 
 function get_node_mac()

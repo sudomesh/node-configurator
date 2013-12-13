@@ -11,7 +11,7 @@
                 "configure_cmd": "echo hurray",
                 "configure_cmd_old": "opkg -i <file>",
                 "post_configure_cmd": "echo \"not actually rebooting\"",
-                "service_type": "_mpd._tcp.local",
+                "service_type": "_nodeconf._tcp.local",
                 "hostname": "nodeconf.local",
                 "port": "1337",
                 "web_port": "8080",
