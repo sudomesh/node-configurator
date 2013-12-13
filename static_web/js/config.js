@@ -47,7 +47,7 @@ var NodeConf = {
         this.node_form_template = _.template($('#node_form_template').html());
 
         console.log("mesh the planet!");
-  
+
         this.sock.onopen = function() {
             console.log("connected to " + this.websocket_uri);
         }.bind(this);
@@ -180,6 +180,22 @@ var NodeConf = {
         var form = $('#right_pane .node_info_form');
         form.change(this.form_changed.bind(this));
         form.submit(this.form_submit.bind(this));
+
+
+        $('#btn_gen_ssid').click(function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            $.post('/get-ssid', function(data, textStatus) {
+                var msg = JSON.parse(data);
+                if(msg.status != 'success') {
+                    console.log("Error getting SSID: " + data);
+                    return;
+                }
+                $('#private_wifi_ssid').val(msg.ssid);
+                this.form_changed();
+            }.bind(this));
+            return false;
+        }.bind(this));
     },
 
     form_submit: function(e) {

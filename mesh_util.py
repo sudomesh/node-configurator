@@ -80,19 +80,34 @@ class NodeDB():
         f.close()
         
         return outFile
-
-        # TODO calculate the following:
-        # mesh_dhcp_range_start
-        # mesh_ipv4_addr
-        # -- both calculated from node_public_subnet_ipv4
-
-        # TODO assign the following:
-        # private_subnet_ipv4_addr (172.30.0.1) 
-        # ^-- Hrm won't this always be the same?
-        # node_public_subnet_ipv4
-        # relay_node_mesh_ipv4_addr
-        # exit_node_ipv4_addr
     
+
+class SSIDGenerator():
+
+    def __init__(self, wordlist):
+        self.wordlist = wordlist
+        self.base_path = os.getcwd()
+
+    # generate a friendly wifi ssid
+    # with specified number of words and numbers
+    def generate(self, words=2, numbers=1):
+        ssid = ''
+        f = open(os.path.join(self.base_path, self.wordlist))
+        wordlist = f.readlines()
+        f.close()
+
+        # get random word(s)
+        for i in xrange(words):
+            ssid += wordlist[random.randint(0, len(wordlist)-1)].strip()
+
+        # get random number(s)
+        if numbers > 0:
+            valid_numbers = '0123456789'
+            ssid += ''.join(valid_numbers[random.randint(0, len(valid_numbers)-1)] for _ in xrange(numbers))
+
+        return ssid
+
+
 
 class TemplateCompiler():
 
@@ -100,7 +115,7 @@ class TemplateCompiler():
         self.nodeConfig = nodeConfig
         self.base_path = os.getcwd()
         self.inputDir = inputDir
-        self.wordlist = wordlist
+        self.ssidGenerator = SSIDGenerator(wordlist)
         if not os.path.isabs(self.inputDir):
             self.inputDir = os.path.join(self.base_path, self.inputDir)
         self.outputDir = outputDir
@@ -125,12 +140,12 @@ class TemplateCompiler():
     # returns compiled data
     def compile_data(self, data):
         for key in self.nodeConfig:
-            val = self.nodeConfig[key]
+            val = str(self.nodeConfig[key])
             val = re.sub(r'\s+', '', val)
             if val == '':
                 continue
             pattern = '<'+key+'>'
-            data = data.replace('<'+key+'>', self.nodeConfig[key])
+            data = data.replace('<'+key+'>', str(self.nodeConfig[key]))
         return data
 
     # check if a filename should be skipped
@@ -139,6 +154,8 @@ class TemplateCompiler():
         if re.match(".*~$", filename):
             return True
         if re.match("^#.*#$", filename):
+            return True
+        if filename == 'README':
             return True
         return False
 
@@ -153,7 +170,7 @@ class TemplateCompiler():
     # generate a random password consisting of
     # upper and lower case letters, numbers and # and !
     def generate_root_password(self, length):
-        if not self.nodeConfig['root_password']:
+        if not 'root_password' in self.nodeConfig:
             self.nodeConfig['root_password'] = self.generate_password(length)
         self.hash_root_password()
 
@@ -176,7 +193,7 @@ class TemplateCompiler():
             for curfile in files:
                 if self.should_skip(curfile) == True:
                     continue
-                
+
                 f = open(os.path.join(root, curfile))
                 authd_keys += f.read()+"\n"
                 f.close()
@@ -184,36 +201,35 @@ class TemplateCompiler():
 
     # generate a friendly wifi ssid
     # with specified number of words and numbers
-    def generate_wifi_ssid(self, words, numbers=0):
-        if self.nodeConfig['private_wifi_ssid']:
+    def generate_wifi_ssid(self):
+        if not 'private_wifi_ssid' in self.nodeConfig:
             return
-        ssid = ''
-        f = open(os.path.join(self.base_path, self.wordlist))
-        wordlist = f.readlines()
-        f.close()
 
-        # get random word(s)
-        for i in xrange(words):
-            ssid += wordlist[random.randint(0, len(wordlist)-1)].strip()
-
-        # get random number(s)
-        if numbers > 0:
-            valid_numbers = '0123456789'
-            ssid += ''.join(valid_numbers[random.randint(0, len(valid_numbers)-1)] for _ in xrange(numbers))
-
-        self.nodeConfig['private_wifi_ssid'] = ssid
+        self.nodeConfig['private_wifi_ssid'] = self.ssidGenerator.generate()
 
     def generate_wifi_key(self, length):
-        if not self.nodeConfig['private_wifi_key']:
+        if not 'private_wifi_key' in self.nodeConfig:
             self.nodeConfig['private_wifi_key'] = self.generate_password(length)
+
+    # assign things that haven't been assigned elsewhere
+    # TODO remove hardcoded values
+    def assign(self):
+        self.nodeConfig['relay_node_inet_ipv4_addr'] = '192.157.242.65'
+        self.nodeConfig['exit_node_mesh_ipv4_addr'] = '10.42.0.11'
+
+    def set_batman_gateway_mode(self):    
+        if (not 'batman_gw_mode' in self.nodeConfig) or self.nodeConfig['batman_gw_mode'] == '':
+            self.nodeConfig['batman_gw_mode'] = 'client'
 
     # compile all files in input dir
     # and put the results in the output dir
     def compile(self):
-        self.generate_wifi_ssid()
-        self.generate_wifi_key(12)
-        self.generate_root_password(12)
-        self.read_authorized_keys()
+        self.assign()
+        self.set_batman_gateway_mode() # assigns <batman_gateway_mode>
+        self.generate_wifi_ssid() # assigns <private_wifi_ssid>
+        self.generate_wifi_key(12) # assigns <private_wifi_key>
+        self.generate_root_password(12) # assigns <root_password_hash>
+        self.read_authorized_keys() # assigns <ssh_authorized_keys>
 
         os.chdir(self.inputDir);
         for root, dirs, files in os.walk('.'):
@@ -290,7 +306,20 @@ class IPKBuilder():
         # delete staging dir
         shutil.rmtree(self.staging_dir)
 
-        
+
+class GetSSIDResource(Resource):
+    isLeaf = True
+
+    def __init__(self, nodeConfFactory, wordlist):
+        self.nodeConfFactory = nodeConfFactory        
+        self.ssidGenerator = SSIDGenerator(wordlist)
+
+    def render_POST(self, request):
+        msg = {
+            'status': 'success',
+            'ssid': self.ssidGenerator.generate()
+            }
+        return json.dumps(msg)
 
 class NodeConfigResource(Resource):
     isLeaf = True

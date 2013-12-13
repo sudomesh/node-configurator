@@ -19,18 +19,18 @@ config dnsmasq
 config dhcp meshpool
 	option interface	'openmesh'
 	option start		<mesh_dhcp_range_start>
-	option limit		240
+	option limit		203
 	option leasetime	5m
 	list dhcp_option	'1,255.0.0.0' # subnet mask
-	list dhcp_option	'3,<exit_node_ipv4_addr>' # gateway
-	list dhcp_option	'6,<exit_node_ipv4_addr>' # DNS
+	list dhcp_option	'3,<exit_node_mesh_ipv4_addr>' # gateway
+	list dhcp_option	'6,<exit_node_mesh_ipv4_addr>' # DNS
 
 config dhcp privatepool
 	option interface	'priv'
 	option start		10
 	option limit		240
 	option leasetime	30m
-	list dhcp_option	'1,255.255.255.0' # subnet mask
-	list dhcp_option	'3,<private_subnet_ipv4_addr>' # gateway
+	list dhcp_option	'1,255.255.0.0' # subnet mask
+	list dhcp_option	'3,172.30.0.1' # gateway
 
 

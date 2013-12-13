@@ -18,7 +18,7 @@ config interface 'openmesh'
 	option type 'bridge'
 	option ifname 'open0 bat0'
 	option proto 'static'
-	option ipaddr '<mesh_ipv4_addr>'
+	option ipaddr '<mesh_addr_ipv4>'
 	option netmask '255.0.0.0'
 
 config interface 'priv'

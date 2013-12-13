@@ -26,6 +26,7 @@ from mesh_util import Config, \
                       NodeStaticResource, \
                       FakeNodePopulatorThread, \
                       NodeConfigResource, \
+                      GetSSIDResource, \
                       IPKBuilder, \
                       TemplateCompiler, \
                       NodeDB
@@ -364,10 +365,13 @@ def start():
     # add the WebSocket server as a resource to the webserver
     nodeHttpResource.putChild(wsresource_name, wsresource)
 
-    # add the form POST handler as a resource to the webserver
+    # add the form POST handlers as a resources to the webserver
     nodeConfigResource = NodeConfigResource(nodeConfFactory)
     nodeConfigResourceName = config['server']['config_post_path'][1:]
     nodeHttpResource.putChild(nodeConfigResourceName, nodeConfigResource)
+    getSSIDResource = GetSSIDResource(nodeConfFactory, config['server']['wordlist'])
+    getSSIDResourceName = config['server']['get_ssid_path'][1:]
+    nodeHttpResource.putChild(getSSIDResourceName, getSSIDResource)
 
     webServerFactory = Site(nodeHttpResource)
 
