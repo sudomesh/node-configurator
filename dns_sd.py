@@ -17,7 +17,7 @@ __all__ = ["ZeroconfService"]
 
 class ZeroconfService:
 
-    def __init__(self, name, port, stype="_node-configurator._tcp",
+    def __init__(self, name, port, stype="_nodeconf._tcp",
                  domain="", host="", text="http://sudomesh.org"):
         self.name = name
         self.stype = stype
@@ -51,7 +51,7 @@ class ZeroconfService:
 
 
 def start():
-    service = ZeroconfService(name="juul", port=5100)
+    service = ZeroconfService(name="sudomesh", port=1337)
     service.publish()
     raw_input("Press any key to shut down the node configurator.")
     service.unpublish()
