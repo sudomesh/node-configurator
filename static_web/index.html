@@ -1,4 +1,4 @@
-<html>
+o<html>
   <head>
     <title>Node Config</title>
   
@@ -14,9 +14,12 @@
     <script type="text/javascript" src="/static/js/jquery.cookie.js"></script>
     <script type="text/javascript" src="/static/js/underscore.js"></script>
     <script type="text/javascript" src="/static/js/json2.js"></script>
+   <script type="text/javascript" src="/static/js/modernizr.js"></script>
+   <script type="text/javascript" src="/static/js/qrcode.js"></script>
 
     <!-- app-specific js -->
     <script type="text/javascript" src="/static/js/config.js"></script>
+    <script type="text/javascript" src="/static/js/stickerGenerator.js"></script>
 
     <!-- javascript templates -->
     <script id="node_template" type="template/html">
@@ -30,6 +33,7 @@
     <script id="node_form_template" type="template/html">
       <div id="flash"></div>
       <div class="node_info">
+        <canvas id="stickerPreview" width="336" height="873"></canvas>
         <h2><%- title %></h2>
         <h3>MAC: <%- mac_addr %></h3>
         <h3>Hardware manufacturer: <%- mac_org %></h3>

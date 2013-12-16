@@ -53,15 +53,24 @@ function connect(ip, port)
 
   -- TLS/SSL client parameters (omitted)
   local params
+  local sock
+  local conn
+  local connssl
+  local err
 
-  local conn = socket.tcp()
-  conn:connect(ip, port)
+  sock = socket.tcp()
+  conn, err = sock:connect(ip, port)
+
+  if not conn then
+    return nil, err
+  end
 
   local params = {
     mode = "client",
     protocol = "tlsv1",
   --  capath = "/etc/ssl/certs",
-    cafile = "/etc/nodeconf/certs/ca_root.crt",
+--    cafile = "/etc/nodeconf/certs/ca_root.crt",
+    cafile = config.client.root_cert,
   -- key = "/etc/certs/clientkey.pem",
   --  certificate = "/etc/certs/client.pem",
     verify = "peer",
@@ -69,10 +78,10 @@ function connect(ip, port)
   }
 
   -- TLS/SSL initialization
-  conn = ssl.wrap(conn, params)
-  conn:dohandshake()
+  connssl = ssl.wrap(sock, params)
+  connssl:dohandshake()
 
-  return conn
+  return connssl
 end
 
 function load_config()
@@ -239,14 +248,14 @@ end
 function begin_connection(ip, port)
 
   local c
+  local err
   local cont
 
   print("connecting to "..ip..":"..port)
-  c = connect(ip, port)
+  c, err = connect(ip, port)
 
   if not c then
-     print("Failed to connect")
-     conn:close()
+     print("Failed to connect: " .. err)
      return false
   end
 
@@ -267,6 +276,7 @@ function begin_connection(ip, port)
 end
 
 function sleep(n)
+  print("Waiting " .. tostring(n) .. " seconds before reconnecting.")
   os.execute("sleep " .. tonumber(n))
 end
 
@@ -279,6 +289,9 @@ function find_server_and_connect()
   local port
   local res
 
+  begin_connection("127.0.0.1", "1337")
+
+--[[
 -- keep trying to connect
   while true do
     mdns = io.popen(config.utils.mdnssd_min..' '..config.server.service_type, 'r')
@@ -296,13 +309,13 @@ function find_server_and_connect()
           mdns:close()
           return true
         end
+        sleep(5)
       end
     end
     mdns:close()
-    print("Could not connect. Sleeping for 5 seconds")
-    sleep(5)
+    sleep(10)
   end
-
+--]]
   return false
 end
 

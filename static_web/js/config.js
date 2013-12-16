@@ -28,6 +28,7 @@ $.fn.serializeObject = function()
 
 var NodeConf = {
 
+    name: "Node Configurator",
     config_file: 'static/config/common.json',
     websocket_uri: null,
     last_timer: null,
@@ -46,7 +47,7 @@ var NodeConf = {
         this.node_template = _.template($('#node_template').html());
         this.node_form_template = _.template($('#node_form_template').html());
 
-        console.log("mesh the planet!");
+        console.log(this.name+" initializing");
 
         this.sock.onopen = function() {
             console.log("connected to " + this.websocket_uri);
@@ -181,6 +182,9 @@ var NodeConf = {
         form.change(this.form_changed.bind(this));
         form.submit(this.form_submit.bind(this));
 
+        this.stickerGen = new StickerGenerator('stickerPreview', 336, 873);
+        this.stickerGen.drawText("foo bar");
+        this.stickerGen.updateCanvas();
 
         $('#btn_gen_ssid').click(function(e) {
             e.stopPropagation();
