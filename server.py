@@ -159,6 +159,16 @@ class NodeProtocol(LineReceiver):
         
         # Step 1: Assign unique IP and log to DB
         
+        # Step 2: Build the IPK
+
+        builder = IPKBuilder(nodeConfig)
+        stagingDir = builder.stage()
+        
+        dataDir = os.path.join(stagingDir, 'data')
+        tcompiler = TemplateCompiler(nodeConfig, 'templates', dataDir, config['server']['wordlist'])
+
+        nodeConfig = tcompiler.assign()
+
         # create the node in the database
         # and receive the nodeConfig with assigned
         # IP address and unique id
@@ -168,14 +178,7 @@ class NodeProtocol(LineReceiver):
             print "-- Error talking to node database"
             return
 
-        # Step 2: Build the IPK
-
-        builder = IPKBuilder(nodeConfig)
-        stagingDir = builder.stage()
-        
-        dataDir = os.path.join(stagingDir, 'data')
-        tcompiler = TemplateCompiler(nodeConfig, 'templates', dataDir, config['server']['wordlist'])
-        tcompiler.compile()
+        tcompiler.compile(nodeConfig)
         ipk_file_path = builder.build()
         builder.clean()
 

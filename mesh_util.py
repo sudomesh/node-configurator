@@ -214,8 +214,16 @@ class TemplateCompiler():
     # assign things that haven't been assigned elsewhere
     # TODO remove hardcoded values
     def assign(self):
+        self.set_batman_gateway_mode() # assigns <batman_gateway_mode>
+        self.generate_wifi_ssid() # assigns <private_wifi_ssid>
+        self.generate_wifi_key(12) # assigns <private_wifi_key>
+        self.generate_root_password(12) # assigns <root_password_hash>
+        self.read_authorized_keys() # assigns <ssh_authorized_keys>
+
         self.nodeConfig['relay_node_inet_ipv4_addr'] = '192.157.242.65'
         self.nodeConfig['exit_node_mesh_ipv4_addr'] = '10.42.0.11'
+
+        return self.nodeConfig
 
     def set_batman_gateway_mode(self):    
         if (not 'batman_gw_mode' in self.nodeConfig) or self.nodeConfig['batman_gw_mode'] == '':
@@ -223,13 +231,9 @@ class TemplateCompiler():
 
     # compile all files in input dir
     # and put the results in the output dir
-    def compile(self):
-        self.set_batman_gateway_mode() # assigns <batman_gateway_mode>
-        self.generate_wifi_ssid() # assigns <private_wifi_ssid>
-        self.generate_wifi_key(12) # assigns <private_wifi_key>
-        self.generate_root_password(12) # assigns <root_password_hash>
-        self.read_authorized_keys() # assigns <ssh_authorized_keys>
-        self.assign()
+    def compile(self, nodeConfig=None):
+        if nodeConfig:
+            self.nodeConfig = nodeConfig
 
         os.chdir(self.inputDir);
         for root, dirs, files in os.walk('.'):
@@ -277,8 +281,8 @@ class IPKBuilder():
         os.chdir("data")
 
         # generate host ssh keys
-        os.makedirs("etc/ssh")
-        os.chdir("etc/ssh")
+        os.makedirs("etc/dropbear")
+        os.chdir("etc/dropbear")
         subprocess.call(["expect", "-f", "../../../../../scripts/gen_ssh_keys.exp"])
              
         os.chdir(self.base_path)
