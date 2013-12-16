@@ -21,6 +21,8 @@ from netaddr import * # for OUI database lookups
 
 from autobahn.resource import WebSocketResource
 
+from pprint import pprint 
+
 from mesh_util import Config, \
                       MeshNodeFactory, \
                       NodeStaticResource, \
@@ -208,6 +210,9 @@ class NodeProtocol(LineReceiver):
             print "Could not parse JSON"
             self.transport.loseConnection()
             return
+
+        print "Got message: "
+        pprint(msg)
 
         if msg['type'] == 'node_appeared':
             self.gotNodeInfo(msg)

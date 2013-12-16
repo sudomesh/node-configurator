@@ -4,12 +4,24 @@ var StickerGenerator = function(elementID, w, h) {
     this.canvas = null;
     this.ctx = null;
 
-    this.init = function(elementID, w, h) {
+    // w and h are with and height of final render.
+    // elementID is the id of a <canvas> tag 
+    // used for displaying the preview.
+    // pw and ph are width and height of preview
+    // if pw and ph are not specified, then the
+    // current width and height of the <canvas> tag is used.
+    this.init = function(w, h, elementID, pw, ph) {
         this.canvas = document.getElementById(elementID);
         this.w = w || 200;
         this.h = h || 200;
+        this.pw = pw;
+        if(!this.pw) {
+            this.pw = $('#'+elementID).width();
+        }
+        if(!this.ph) {
+            this.ph = $('#'+elementID).height();
+        }
         this.ctx = this.newContext(w, h);
-            
     };
 
     this.updateCanvas = function() {
@@ -76,11 +88,12 @@ var StickerGenerator = function(elementID, w, h) {
 	      }
     };
 
-    this.updateCanvas = function() {
+    this.updatePreview = function() {
         var bitmap = this.ctx.getImageData(0, 0, this.w, this.h)
-	      this.canvas.width = bitmap.width;
-	      this.canvas.height = bitmap.height;
+	      this.canvas.width = this.pw;
+	      this.canvas.height = this.ph;
 	      var ctx = this.canvas.getContext('2d');
+        ctx.scale(factor, factor);
 	      ctx.putImageData(bitmap, 0, 0);
 
     };

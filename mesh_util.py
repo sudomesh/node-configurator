@@ -165,7 +165,7 @@ class TemplateCompiler():
         sub = subprocess.Popen(["/usr/bin/mkpasswd", "--method=md5", "-s"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         sub.stdin.write(self.nodeConfig['root_password']+"\n")
         hashline = sub.stdout.read()
-        self.nodeConfig['root_password_hash'] = hashline
+        self.nodeConfig['root_password_hash'] = hashline.strip()
 
     # generate a random password consisting of
     # upper and lower case letters, numbers and # and !
@@ -224,12 +224,12 @@ class TemplateCompiler():
     # compile all files in input dir
     # and put the results in the output dir
     def compile(self):
-        self.assign()
         self.set_batman_gateway_mode() # assigns <batman_gateway_mode>
         self.generate_wifi_ssid() # assigns <private_wifi_ssid>
         self.generate_wifi_key(12) # assigns <private_wifi_key>
         self.generate_root_password(12) # assigns <root_password_hash>
         self.read_authorized_keys() # assigns <ssh_authorized_keys>
+        self.assign()
 
         os.chdir(self.inputDir);
         for root, dirs, files in os.walk('.'):
@@ -295,15 +295,20 @@ class IPKBuilder():
 
         os.chdir(self.staging_dir)
 
-        subprocess.call(["tar", "-czf", "data.tar.gz", "data"])
-        subprocess.call(["tar", "-czf", "control.tar.gz", "control"])
+        # TODO check for errors (thrown as exceptions)
+        os.chdir("data")
+        subprocess.check_output("tar -czf ../data.tar.gz *", shell=True)
+        os.chdir("..")
+        os.chdir("control")
+        subprocess.check_output("tar -czf ../control.tar.gz *", shell=True)
+        os.chdir("..")
+        # TODO does not throw an exception on error
         subprocess.call(["tar", "-czf", self.ipk_file, "data.tar.gz", "control.tar.gz", "debian-binary"])
 
         os.chdir(self.base_path)
         return self.ipk_file
 
     def clean(self):
-
         # delete staging dir
         shutil.rmtree(self.staging_dir)
 

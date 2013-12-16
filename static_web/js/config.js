@@ -181,11 +181,11 @@ var NodeConf = {
         var form = $('#right_pane .node_info_form');
         form.change(this.form_changed.bind(this));
         form.submit(this.form_submit.bind(this));
-
+/*
         this.stickerGen = new StickerGenerator('stickerPreview', 336, 873);
         this.stickerGen.drawText("foo bar");
         this.stickerGen.updateCanvas();
-
+*/
         $('#btn_gen_ssid').click(function(e) {
             e.stopPropagation();
             e.preventDefault();
