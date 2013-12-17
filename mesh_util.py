@@ -10,6 +10,7 @@ import os
 import shutil
 import urllib
 import subprocess
+import base64
 
 from random               import randint
 
@@ -305,10 +306,10 @@ class IPKBuilder():
 
         # TODO check for errors (thrown as exceptions)
         os.chdir("data")
-        subprocess.check_output("fakeroot tar -czfp ../data.tar.gz *", shell=True)
+        subprocess.check_output("fakeroot tar -pczf ../data.tar.gz *", shell=True)
         os.chdir("..")
         os.chdir("control")
-        subprocess.check_output("fakeroot tar -czfp ../control.tar.gz *", shell=True)
+        subprocess.check_output("fakeroot tar -pczf ../control.tar.gz *", shell=True)
         os.chdir("..")
         # TODO does not throw an exception on error
         subprocess.call(["tar", "-czf", self.ipk_file, "data.tar.gz", "control.tar.gz", "debian-binary"])
@@ -333,6 +334,43 @@ class GetSSIDResource(Resource):
             'status': 'success',
             'ssid': self.ssidGenerator.generate()
             }
+        return json.dumps(msg)
+
+
+
+class PrintStickerResource(Resource):
+    isLeaf = True
+
+    def __init__(self, nodeConfFactory, stickerPath):
+        self.stickerPath = stickerPath
+        self.nodeConfFactory = nodeConfFactory  
+
+    def save_base64_png(self, image):
+        if not image:
+            return False
+        # remove the header "data:image/png;base64,"
+        image = image[22:]
+        decoded = base64.b64decode(image)
+        # TODO generate sticker filename from node id
+        f = open(os.path.join(self.stickerPath, 'out.png'), 'w')
+        f.write(decoded)
+        f.close()
+
+    def render_POST(self, request):
+        msg_str = request.content.read()
+        msg = json.loads(msg_str)
+        
+        if (not msg) or ('image' not in msg):
+            msg = {
+                'status' : 'error',
+                'msg' : "could not decode base64 encoded png data"
+                }
+        else:
+            self.save_base64_png(msg['image'])
+            msg = {
+                'status': 'success'
+                }
+
         return json.dumps(msg)
 
 class NodeConfigResource(Resource):

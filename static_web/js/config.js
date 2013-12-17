@@ -203,6 +203,22 @@ var NodeConf = {
             }.bind(this));
             return false;
         }.bind(this));
+
+        $('#btn_print_sticker').click(function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+
+            var msg = {image: this.stickerGen.toDataURL()};
+
+				    $.post('/print-sticker',
+					         JSON.stringify(msg), 
+                   function(data) {
+                       console.log("sticker sent to server for printing");
+                   }, 
+                   'json');
+
+            return false;
+        }.bind(this));
     },
 
     form_submit: function(e) {

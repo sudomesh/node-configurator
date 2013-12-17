@@ -29,6 +29,7 @@ from mesh_util import Config, \
                       FakeNodePopulatorThread, \
                       NodeConfigResource, \
                       GetSSIDResource, \
+                      PrintStickerResource, \
                       IPKBuilder, \
                       TemplateCompiler, \
                       NodeDB
@@ -375,12 +376,19 @@ def start():
     nodeHttpResource.putChild(wsresource_name, wsresource)
 
     # add the form POST handlers as a resources to the webserver
+    # configure node post
     nodeConfigResource = NodeConfigResource(nodeConfFactory)
     nodeConfigResourceName = config['server']['config_post_path'][1:]
     nodeHttpResource.putChild(nodeConfigResourceName, nodeConfigResource)
+    # get ssid post
     getSSIDResource = GetSSIDResource(nodeConfFactory, config['server']['wordlist'])
     getSSIDResourceName = config['server']['get_ssid_path'][1:]
     nodeHttpResource.putChild(getSSIDResourceName, getSSIDResource)
+    # print sticker post
+    stickerPath = 'stickers' # TODO get this from config file
+    printStickerResource = PrintStickerResource(nodeConfFactory, stickerPath)
+    printStickerResourceName = 'print-sticker' 
+    nodeHttpResource.putChild(printStickerResourceName, printStickerResource)
 
     webServerFactory = Site(nodeHttpResource)
 

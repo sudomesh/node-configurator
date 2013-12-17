@@ -80,21 +80,10 @@ var StickerGenerator = function(elementID, w, h) {
         ctx.textAlign = 'center';
 	      ctx.fillText(text, middle, offset);
         this.curLine++;
-        /*
-        if(data.url) {
-	          y += 45;
-	          ctx.font = '40px sans-serif';
-	          ctx.fillText('url: '+data.url, 20, y);
-        }
+    };
 
-	      y += 40;
-	      ctx.font = 'italic 40px sans-serif';
-	      var lines = data.desc.split('\n');
-	      for (var i=0; i<lines.length;i++) {
-	          ctx.fillText(lines[i], 20, y);
-	          y += 40;
-	      }
-        */
+    this.toDataURL = function() {
+        return this.ctx.canvas.toDataURL('image/png');
     };
 
     this.isBrowserSupported = function() {
