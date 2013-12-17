@@ -179,6 +179,7 @@ class NodeProtocol(LineReceiver):
             return
 
         tcompiler.compile(nodeConfig)
+
         ipk_file_path = builder.build()
         builder.clean()
 

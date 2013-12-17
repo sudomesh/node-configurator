@@ -127,12 +127,14 @@ class TemplateCompiler():
     # if either file or any dirs that are part of path 
     # don't exist, then they are created
     # if file exists, overwrite
-    def write_file(self, path, data):
+    # mode is permissions mode as an integer
+    # default mode is oct '0100640' in decimal
+    def write_file(self, path, data, mode=33184):
         d = os.path.dirname(path)
         if not os.path.exists(d):
-            os.makedirs(d)
-
-        f = open(path, 'w')
+            os.makedirs(d, 0755)
+#        mode = '0'+oct(mode)[-3:]
+        f = os.fdopen(os.open(path, os.O_WRONLY | os.O_CREAT, mode), 'w')
         f.write(data)
         f.close()
         
@@ -220,6 +222,7 @@ class TemplateCompiler():
         self.generate_root_password(12) # assigns <root_password_hash>
         self.read_authorized_keys() # assigns <ssh_authorized_keys>
 
+        # TODO put these in config file
         self.nodeConfig['relay_node_inet_ipv4_addr'] = '192.157.242.65'
         self.nodeConfig['exit_node_mesh_ipv4_addr'] = '10.42.0.11'
 
@@ -247,7 +250,8 @@ class TemplateCompiler():
                 compiled = self.compile_data(template)
                 outpath = os.path.join(self.outputDir, root, curfile)
                 print "writing to: " + outpath
-                self.write_file(outpath, compiled)
+                mode = os.stat(inpath).st_mode
+                self.write_file(outpath, compiled, mode)
         os.chdir(self.base_path)
 
 
@@ -281,7 +285,7 @@ class IPKBuilder():
         os.chdir("data")
 
         # generate host ssh keys
-        os.makedirs("etc/dropbear")
+        os.makedirs("etc/dropbear", 0755)
         os.chdir("etc/dropbear")
         subprocess.call(["expect", "-f", "../../../../../scripts/gen_ssh_keys.exp"])
              
@@ -301,10 +305,10 @@ class IPKBuilder():
 
         # TODO check for errors (thrown as exceptions)
         os.chdir("data")
-        subprocess.check_output("tar -czf ../data.tar.gz *", shell=True)
+        subprocess.check_output("fakeroot tar -czfp ../data.tar.gz *", shell=True)
         os.chdir("..")
         os.chdir("control")
-        subprocess.check_output("tar -czf ../control.tar.gz *", shell=True)
+        subprocess.check_output("fakeroot tar -czfp ../control.tar.gz *", shell=True)
         os.chdir("..")
         # TODO does not throw an exception on error
         subprocess.call(["tar", "-czf", self.ipk_file, "data.tar.gz", "control.tar.gz", "debian-binary"])
