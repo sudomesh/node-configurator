@@ -11,7 +11,8 @@ var StickerGenerator = function(elementID, w, h) {
     // if pw and ph are not specified, then the
     // current width and height of the <canvas> tag is used.
     this.init = function(w, h, elementID, pw, ph) {
-        this.canvas = document.getElementById(elementID);
+        this.pCanvas = document.getElementById(elementID);
+        this.pCtx = this.pCanvas.getContext('2d');
         this.w = w || 200;
         this.h = h || 200;
         this.pw = pw;
@@ -22,14 +23,8 @@ var StickerGenerator = function(elementID, w, h) {
             this.ph = $('#'+elementID).height();
         }
         this.ctx = this.newContext(w, h);
-    };
-
-    this.updateCanvas = function() {
-        var bitmap = this.ctx.getImageData(0, 0, this.w, this.h);
-	      this.canvas.width = bitmap.width;
-	      this.canvas.height = bitmap.height;
-	      var ctx = canvas.getContext('2d');
-	      ctx.putImageData(bitmap, 0, 0);
+        this.pFactor = this.pw / this.w;
+        this.pCtx.scale(this.pFactor, this.pFactor);
     };
 
     this.newContext = function(w, h){
@@ -49,11 +44,42 @@ var StickerGenerator = function(elementID, w, h) {
 	      return ctx;
     };
     
-    this.drawText = function(text) {
-	      this.ctx.translate(20, 0);
-	      var y = 50;
-	      this.ctx.font = 'bold 40px sans-serif';
-	      this.ctx.fillText(text, 20, y);
+    this.draw = function(info) {
+        this.drawSticker(this.ctx, info);
+        this.drawSticker(this.pCtx, info);
+    };
+
+    this.drawSticker = function(ctx, info) {
+        this.curLine = 0;
+        this.drawLine(ctx, "This is the power");
+        this.drawLine(ctx, "supply for your");
+        this.drawLine(ctx, "sudomesh", true);
+        this.drawLine(ctx, "node", true);
+        this.drawLine(ctx, "---------------");
+        this.drawLine(ctx, "To change your");
+        this.drawLine(ctx, "node settings");
+        this.drawLine(ctx, "connect to the");
+        this.drawLine(ctx, "wifi network:");
+        this.drawLine(ctx, info.private_wifi_ssid, true);
+        this.drawLine(ctx, "wifi password:");
+        this.drawLine(ctx, info.private_wifi_password, true);
+        this.drawLine(ctx, "go to website:");
+        this.drawLine(ctx, "http://my.mesh/", true);
+        this.drawLine(ctx, "username is:");
+        this.drawLine(ctx, "root", true);
+        this.drawLine(ctx, "password is:");
+        this.drawLine(ctx, info.root_password, true);
+        this.drawLine(ctx, "for support go to");
+        this.drawLine(ctx, "h.sudoroom.org", true);
+    };
+
+    this.drawLine = function(ctx, text, bold) {
+        var offset = this.curLine * 41 + 50;
+	      var middle = this.w / 2;
+	      ctx.font = (bold ? 'bold ' : '') + '31px sans-serif' 
+        ctx.textAlign = 'center';
+	      ctx.fillText(text, middle, offset);
+        this.curLine++;
         /*
         if(data.url) {
 	          y += 45;
@@ -86,16 +112,6 @@ var StickerGenerator = function(elementID, w, h) {
 	      } else {
 	          return false;
 	      }
-    };
-
-    this.updatePreview = function() {
-        var bitmap = this.ctx.getImageData(0, 0, this.w, this.h)
-	      this.canvas.width = this.pw;
-	      this.canvas.height = this.ph;
-	      var ctx = this.canvas.getContext('2d');
-        ctx.scale(factor, factor);
-	      ctx.putImageData(bitmap, 0, 0);
-
     };
 
     this.drawCircle = function(ctx) {

@@ -145,5 +145,8 @@ p {
 }
 
 #stickerPreview {
+    position: absolute;
+    top: 50px;
+    right: 30px;
     border: 1px solid black;
 }

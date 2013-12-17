@@ -181,11 +181,14 @@ var NodeConf = {
         var form = $('#right_pane .node_info_form');
         form.change(this.form_changed.bind(this));
         form.submit(this.form_submit.bind(this));
-/*
-        this.stickerGen = new StickerGenerator('stickerPreview', 336, 873);
-        this.stickerGen.drawText("foo bar");
-        this.stickerGen.updateCanvas();
-*/
+
+        this.stickerGen = new StickerGenerator(336, 873, 'stickerPreview');
+        this.stickerGen.draw({
+            private_wifi_ssid: "hacktheplanet",
+            private_wifi_password: "neajFibeef8",
+            root_password: "UnMuHymmEyp3"
+        });
+
         $('#btn_gen_ssid').click(function(e) {
             e.stopPropagation();
             e.preventDefault();
