@@ -23,6 +23,8 @@ from autobahn.resource import WebSocketResource
 
 from pprint import pprint 
 
+from zeroconfService import ZeroconfService
+
 from mesh_util import Config, \
                       MeshNodeFactory, \
                       NodeStaticResource, \
@@ -394,11 +396,16 @@ def start():
 
     reactor.listenSSL(web_port, webServerFactory, contextFactory)
 
+    service = ZeroconfService(name="sudomesh node configurator", stype=config['server']['service_type'], port=int(config['server']['port']))
+
+    service.publish()
+
+    log.msg("Publishing Avahi service of type %s on port %s" % (config['server']['service_type'], str(config['server']['port'])))
     log.msg("Webserver ready on %s" % web_uri);
 
     # start the servers.
     reactor.run()
-
+    service.unpublish()
 
 if __name__ == "__main__":
     config = Config.load()

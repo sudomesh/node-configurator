@@ -4,14 +4,15 @@
         },
         "client": {
                 "download_path": "/tmp",
-                "root_cert": "certs/ca_root.crt"
+                "root_cert": "certs/ca_root.crt",
+                "service_type": "_nodeconf._tcp.local"
         },
         "server": {
                 "wordlist": "config/wordlist_simple",
                 "db_host": "localhost:3000",
                 "configure_cmd": "opkg --force-overwrite install <file>",
                 "post_configure_cmd": "echo \"not actually rebooting\"",
-                "service_type": "_nodeconf._tcp.local",
+                "service_type": "_nodeconf._tcp",
                 "hostname": "nodeconf.local",
                 "port": "1337",
                 "web_port": "8080",

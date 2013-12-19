@@ -294,7 +294,7 @@ function find_server_and_connect()
 --[[
 -- keep trying to connect
   while true do
-    mdns = io.popen(config.utils.mdnssd_min..' '..config.server.service_type, 'r')
+    mdns = io.popen(config.utils.mdnssd_min..' '..config.client.service_type, 'r')
 
     while true do
       line = mdns:read("*line")

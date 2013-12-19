@@ -1,5 +1,5 @@
 #!/bin/sh
 
-virtualenv pyvirt-node-configurator
+virtualenv --system-site-packages pyvirt-node-configurator
 . pyvirt-node-configurator/bin/activate
 pip install -r requirements.txt
