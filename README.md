@@ -12,39 +12,13 @@ For testing it may be easier to turn off password protection for the SSL certifi
 
 This will generate a self-signed key/crt for a root CA, a key/crt for a subordinate CA signed by the root CA and finally a crt/key signed by the subordinate CA which is used as the crt/key pair for the python server.
 
-Now start the server:
-
-./ssl_server.py
-
-And start the client:
-
-./ssl_client.lua
-
-Requirements for python server stuff:
-
-openssl
-dbus
-avahi-daemon
-python
-python-twisted
-coreutils
-
-Requirements for lua client stuff:
-
-openssl 
-lua5.1 
-luasocket 
-liblua5.1-sec1 
-
-Also, see more documentation in the comments in ssl_server.py and ssl_client.lua
-
 # Server #
 
 ## Prerequisites ##
 
 For a typical modern Debian / Ubuntu desktop machine first install some prerequisites:
 
-  sudo aptitude install python avahi-daemon python-virtualenv python-pip python-openssl python-dbus python-avahi build-essential libssl-dev expect fakeroot
+  sudo aptitude install python avahi-daemon python-virtualenv python-pip python-openssl python-dbus python-avahi build-essential libssl-dev expect fakeroot python-dev
 
 Install the extra required python packages in a virtual python environment:
 
