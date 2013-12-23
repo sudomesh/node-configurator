@@ -30,7 +30,7 @@ config dhcp privatepool
 	option start		10
 	option limit		240
 	option leasetime	30m
-	list dhcp_option	'1,255.255.0.0' # subnet mask
+	list dhcp_option	'1,255.255.255.0' # subnet mask
 	list dhcp_option	'3,172.30.0.1' # gateway
 
 
