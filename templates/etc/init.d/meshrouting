@@ -95,7 +95,7 @@ start() {
     # TODO: What about non-IP traffic? We are currently blocking it.
 
     # add a default route for internet traffic from the mesh / open ap
-    ip route add default via $EXITUP dev $BRIDGE table public
+    ip route add default via $EXITIP dev $BRIDGE table public
 
     # all traffic on the subnet owned by this node stays local
     ip rule add from $NODENET to $NODENET dev $BRIDGE prio 16950 table main
