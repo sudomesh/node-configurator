@@ -205,13 +205,15 @@ class TemplateCompiler():
     # generate a friendly wifi ssid
     # with specified number of words and numbers
     def generate_wifi_ssid(self):
-        if not 'private_wifi_ssid' in self.nodeConfig:
+        if 'private_wifi_ssid' in self.nodeConfig and self.nodeConfig['private_wifi_ssid'] != '':
             return
 
         self.nodeConfig['private_wifi_ssid'] = self.ssidGenerator.generate()
 
     def generate_wifi_key(self, length):
-        if not 'private_wifi_key' in self.nodeConfig:
+        if 'private_wifi_key' in self.nodeConfig and self.nodeConfig['private_wifi_key'] != '':
+            return
+
             self.nodeConfig['private_wifi_key'] = self.generate_password(length)
 
     # assign things that haven't been assigned elsewhere
@@ -230,8 +232,10 @@ class TemplateCompiler():
         return self.nodeConfig
 
     def set_batman_gateway_mode(self):    
-        if (not 'batman_gw_mode' in self.nodeConfig) or self.nodeConfig['batman_gw_mode'] == '':
-            self.nodeConfig['batman_gw_mode'] = 'client'
+        if 'batman_gw_mode' in self.nodeConfig and self.nodeConfig['batman_gw_mode'] != '':
+            return
+
+        self.nodeConfig['batman_gw_mode'] = 'client'
 
     # compile all files in input dir
     # and put the results in the output dir
