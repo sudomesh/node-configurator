@@ -288,7 +288,7 @@ class IPKBuilder():
         # generate host ssh keys
         os.makedirs("etc/dropbear", 0755)
         os.chdir("etc/dropbear")
-        subprocess.call(["expect", "-f", "../../../../../scripts/gen_ssh_keys.exp"])
+        subprocess.call(["/bin/sh", "../../../../../scripts/gen_ssh_keys.sh"])
              
         os.chdir(self.base_path)
 
