@@ -216,10 +216,11 @@ class TemplateCompiler():
         self.nodeConfig['private_wifi_ssid'] = self.ssidGenerator.generate()
 
     def generate_wifi_key(self, length):
+
         if 'private_wifi_key' in self.nodeConfig and self.nodeConfig['private_wifi_key'] != '':
             return
 
-            self.nodeConfig['private_wifi_key'] = self.generate_password(length)
+        self.nodeConfig['private_wifi_key'] = self.generate_password(length)
 
     # assign things that haven't been assigned elsewhere
     # TODO remove hardcoded values
