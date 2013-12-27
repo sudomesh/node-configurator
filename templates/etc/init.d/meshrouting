@@ -17,10 +17,13 @@ PRIV=priv0
 TUN=l2tp0
 BRIDGE=br-openmesh
 
-NODENET=<mesh_subnet_ipv4>
+NODENET=<mesh_subnet_ipv4>/<mesh_subnet_ipv4_bitmask>
 MESHNET=10.0.0.0/8
 PRIVNET=172.30.0.0/24
 BADNET=10.0.0.0/24 # sometimes used by home routers
+
+NODEIP=<mesh_addr_ipv4>
+PRIVIP=172.30.0.1
 
 start() {
 
@@ -31,9 +34,17 @@ start() {
     iptables -t nat -F POSTROUTING
 
 
-    # Enable IP masquerading (NAT)
+    # Enable IP masquerading for ethernet output (NAT)
     iptables -t nat -A POSTROUTING -o $ETH -j MASQUERADE
     echo 1 > /proc/sys/net/ipv4/ip_forward
+
+    # Enable IP masquerading for private net access to mesh
+    iptables -t nat -A POSTROUTING -s $PRIVNET -o $BRIDGE -j MASQUERADE ## NEW
+
+    # Only allow stuff from mesh to private if is part of
+    # an established connection and is from the mesh subnet
+    iptables -A INPUT -m state --state ESTABLISHED,RELATED -i $BRIDGE -d $PRIVNET -s $MESHNET -j ACCEPT
+    iptables -A INPUT -i $BRIDGE -d $PRIVNET -j DROP
 
     # accept everything local
     iptables -A INPUT -i lo -j ACCEPT
@@ -92,25 +103,44 @@ start() {
     # no internet to internet forward
     iptables -A FORWARD -i $ETH -o $ETH -j DROP
 
-    # TODO: What about non-IP traffic? We are currently blocking it.
+    # TODO: What about non-IP traffic? 
 
-    # add a default route for internet traffic from the mesh / open ap
+    # default route for 'public' table is the exit node
     ip route add default via $EXITIP dev $BRIDGE table public
 
+    # add standard route for bridge interface to public table
+    # (same as in main routing table)
+    ip route add $PRIVNET dev $PRIV proto kernel scope link src $PRIVIP table public
+
+    # add standard route for private interface to public table
+    # (same as in main routing table)
+    ip route add $MESHNET dev $BRIDGE proto kernel scope link src $NODEIP table public
+
+    # traffic from the mesh goes to the 'public' table
+    ip rule add from $MESHNET iif $BRIDGE prio 16000 table public
+
+    ip route flush cache 
+
+# ---- OLD STUFF START
+    # add a default route for internet traffic from the mesh / open ap
+#    ip route add default via $EXITIP dev $BRIDGE table public
+
     # all traffic on the subnet owned by this node stays local
-    ip rule add from $NODENET to $NODENET dev $BRIDGE prio 16950 table main
+#    ip rule add from $NODENET to $NODENET dev $BRIDGE prio 16950 table main
 
     # all traffic between the local node's mesh/open and the local node's priv stays local
-    ip rule add from $NODENET to $PRIVNET dev $BRIDGE prio 16950 table main 
+#    ip rule add from $NODENET to $PRIVNET dev $BRIDGE prio 16950 table main
 
     # all other 10.x.x.x traffic from open/mesh interfaces goes through tunnel
-    ip rule add from $MESHNET dev $BRIDGE prio 17000 table public
-
+#    ip rule add from $MESHNET dev $BRIDGE prio 17000 table public
 
     #  TODO: What about normal mesh traffic? Maybe the public table needs some more rules.
     #  We should test if normal mesh traffic between nodes is affected by this script.
 
-    ip route flush cache 
+#    ip route flush cache 
+
+# ---- OLD STUFF END
+
 }
 
 stop() {
