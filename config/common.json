@@ -13,7 +13,7 @@
                 "configure_cmd": "opkg --force-overwrite install <file>",
                 "post_configure_cmd": "echo \"not actually rebooting\"",
                 "service_type": "_nodeconf._tcp",
-                "hostname": "nodeconf.local",
+                "hostname": "192.168.222.1",
                 "port": "1337",
                 "web_port": "8080",
                 "protocol": "https",

@@ -1,7 +1,6 @@
 
 config broker
-	list address '<relay_node_inet_ipv4_addr>:3179'
-	list address '<relay_node_inet_ipv4_addr>:53'
+	list address '<relay_node_inet_ipv4_addr>:8942'
 	option uuid '<id>'
 	option interface 'l2tp0'
 	option limit_bw_down '1024'

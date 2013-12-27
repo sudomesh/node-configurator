@@ -142,12 +142,17 @@ class TemplateCompiler():
     # takes uncompiled data (a template) as input
     # returns compiled data
     def compile_data(self, data):
+#        print "DATA: " + str(data)
         for key in self.nodeConfig:
+            if not self.nodeConfig[key] or (self.nodeConfig[key] == ''):
+                continue
             val = str(self.nodeConfig[key])
             val = re.sub(r'\s+', '', val)
             if val == '':
                 continue
             pattern = '<'+key+'>'
+#            print "Replacing: " + pattern
+#            print "With: " + val
             data = data.replace('<'+key+'>', str(self.nodeConfig[key]))
         return data
 
@@ -226,7 +231,7 @@ class TemplateCompiler():
         self.read_authorized_keys() # assigns <ssh_authorized_keys>
 
         # TODO put these in config file
-        self.nodeConfig['relay_node_inet_ipv4_addr'] = '192.157.242.65'
+        self.nodeConfig['relay_node_inet_ipv4_addr'] = '192.157.221.200'
         self.nodeConfig['exit_node_mesh_ipv4_addr'] = '10.42.0.11'
 
         return self.nodeConfig
