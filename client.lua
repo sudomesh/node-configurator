@@ -53,24 +53,15 @@ function connect(ip, port)
 
   -- TLS/SSL client parameters (omitted)
   local params
-  local sock
-  local conn
-  local connssl
-  local err
 
-  sock = socket.tcp()
-  conn, err = sock:connect(ip, port)
-
-  if not conn then
-    return nil, err
-  end
+  local conn = socket.tcp()
+  conn:connect(ip, port)
 
   local params = {
     mode = "client",
     protocol = "tlsv1",
   --  capath = "/etc/ssl/certs",
---    cafile = "/etc/nodeconf/certs/ca_root.crt",
-    cafile = config.client.root_cert,
+    cafile = "/etc/nodeconf/certs/ca_root.crt",
   -- key = "/etc/certs/clientkey.pem",
   --  certificate = "/etc/certs/client.pem",
     verify = "peer",
@@ -78,10 +69,10 @@ function connect(ip, port)
   }
 
   -- TLS/SSL initialization
-  connssl = ssl.wrap(sock, params)
-  connssl:dohandshake()
+  conn = ssl.wrap(conn, params)
+  conn:dohandshake()
 
-  return connssl
+  return conn
 end
 
 function load_config()
@@ -111,7 +102,7 @@ function run_command(cmd)
 
   -- actually only gets the last digit of exit code
   -- but that's good enough
-  exit_code = string.match(output, ".*(%d+[\r\n])")
+  exit_code = string.match(output, ".*(%d+)[\r\n]")
   if exit_code ~= '0' then
     return false, output
   else
@@ -248,14 +239,14 @@ end
 function begin_connection(ip, port)
 
   local c
-  local err
   local cont
 
   print("connecting to "..ip..":"..port)
-  c, err = connect(ip, port)
+  c = connect(ip, port)
 
   if not c then
-     print("Failed to connect: " .. err)
+     print("Failed to connect")
+     conn:close()
      return false
   end
 
@@ -276,7 +267,6 @@ function begin_connection(ip, port)
 end
 
 function sleep(n)
-  print("Waiting " .. tostring(n) .. " seconds before reconnecting.")
   os.execute("sleep " .. tonumber(n))
 end
 
@@ -289,9 +279,6 @@ function find_server_and_connect()
   local port
   local res
 
-  begin_connection("127.0.0.1", "1337")
-
---[[
 -- keep trying to connect
   while true do
     mdns = io.popen(config.utils.mdnssd_min..' '..config.client.service_type, 'r')
@@ -309,13 +296,13 @@ function find_server_and_connect()
           mdns:close()
           return true
         end
-        sleep(5)
       end
     end
     mdns:close()
-    sleep(10)
+    print("Could not connect. Sleeping for 5 seconds")
+    sleep(5)
   end
---]]
+
   return false
 end
 
@@ -324,6 +311,8 @@ function get_node_mac()
   local f
   local line
 
+-- TODO we should be using the MAC addres of the wlan0 device
+-- but it is currently not available during configuration
   f = io.popen("ip addr show scope link dev wlan0|grep link", 'r')
   line = f:read("*line")
   f:close()
