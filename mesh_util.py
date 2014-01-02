@@ -169,19 +169,25 @@ class TemplateCompiler():
 
     # uses mkpasswd to generate a salted password hash
     # usable in a /etc/shadow file
-    def hash_root_password(self):
+    def hash_password(self, password):
         sub = subprocess.Popen(["/usr/bin/mkpasswd", "--method=md5", "-s"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-        sub.stdin.write(self.nodeConfig['root_password']+"\n")
+        sub.stdin.write(password+"\n")
         hashline = sub.stdout.read()
-        self.nodeConfig['root_password_hash'] = hashline.strip()
+        return hashline.strip()
 
-    # generate a random password consisting of
-    # upper and lower case letters, numbers and # and !
     def generate_root_password(self, length):
         if not 'root_password' in self.nodeConfig:
             self.nodeConfig['root_password'] = self.generate_password(length)
-        self.hash_root_password()
+        self.nodeConfig['root_password_hash'] = self.hash_password(self.nodeConfig['root_password'])
+        
 
+    def generate_user_password(self, length):
+        if not 'user_password' in self.nodeConfig:
+            self.nodeConfig['user_password'] = self.generate_password(length)
+        self.nodeConfig['user_password_hash'] = self.hash_password(self.nodeConfig['user_password'])
+
+    # generate a random password consisting of
+    # upper and lower case letters, numbers and # and !
     def generate_password(self, length):
         chars = string.letters + string.digits + '#!'
         
@@ -229,9 +235,11 @@ class TemplateCompiler():
         self.generate_wifi_ssid() # assigns <private_wifi_ssid>
         self.generate_wifi_key(12) # assigns <private_wifi_key>
         self.generate_root_password(12) # assigns <root_password_hash>
+        self.generate_user_password(8) # assigns <user_password_hash>
         self.read_authorized_keys() # assigns <ssh_authorized_keys>
 
         # TODO put these in config file
+        self.nodeConfig['user_name'] = 'admin'
         self.nodeConfig['relay_node_inet_ipv4_addr'] = '192.157.221.200'
         self.nodeConfig['exit_node_mesh_ipv4_addr'] = '10.42.0.11'
 

@@ -61,7 +61,8 @@ function connect(ip, port)
     mode = "client",
     protocol = "tlsv1",
   --  capath = "/etc/ssl/certs",
-    cafile = "/etc/nodeconf/certs/ca_root.crt",
+    cafile = config.client.ssl_root_cert,
+  -- cafile = "/etc/nodeconf/certs/ca_root.crt",
   -- key = "/etc/certs/clientkey.pem",
   --  certificate = "/etc/certs/client.pem",
     verify = "peer",
@@ -373,7 +374,11 @@ load_config()
 --system_type = get_system_type()
 --print("System: "..system_type)
 
-find_server_and_connect()
+if table.getn(arg) == 2 then
+  begin_connection(arg[1], tonumber(arg[2]))
+else
+  find_server_and_connect()
+end
 
 
 

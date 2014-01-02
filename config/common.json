@@ -4,7 +4,7 @@
         },
         "client": {
                 "download_path": "/tmp",
-                "root_cert": "certs/ca_root.crt",
+                "ssl_root_cert": "certs/ca_root.crt",
                 "service_type": "_nodeconf._tcp.local"
         },
         "server": {
