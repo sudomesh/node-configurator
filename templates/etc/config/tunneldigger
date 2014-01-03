@@ -3,7 +3,7 @@ config broker
 	list address '<relay_node_inet_ipv4_addr>:8942'
 	option uuid '<id>'
 	option interface 'l2tp0'
-	option limit_bw_down '1024'
-	option limit_bw_down '256'
+	option limit_bw_down '2048'
+	option limit_bw_up '512'
 	option hook_script '/opt/mesh/tunnel_hook'
 
