@@ -64,7 +64,7 @@ var StickerGenerator = function(elementID, w, h) {
         this.drawLine(ctx, "wifi password:");
         this.drawLine(ctx, info.private_wifi_password, true);
         this.drawLine(ctx, "go to website:");
-        this.drawLine(ctx, "http://my.mesh/", true);
+        this.drawLine(ctx, "http://my.node/", true);
         this.drawLine(ctx, "username is:");
         this.drawLine(ctx, "root", true);
         this.drawLine(ctx, "password is:");

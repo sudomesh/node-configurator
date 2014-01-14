@@ -61,8 +61,7 @@ function connect(ip, port)
     mode = "client",
     protocol = "tlsv1",
   --  capath = "/etc/ssl/certs",
-    cafile = config.client.ssl_root_cert,
-  -- cafile = "/etc/nodeconf/certs/ca_root.crt",
+    cafile = "/etc/nodeconf/certs/ca_root.crt",
   -- key = "/etc/certs/clientkey.pem",
   --  certificate = "/etc/certs/client.pem",
     verify = "peer",
@@ -312,9 +311,7 @@ function get_node_mac()
   local f
   local line
 
--- TODO we should be using the MAC addres of the wlan0 device
--- but it is currently not available during configuration
-  f = io.popen("ip addr show scope link dev wlan0|grep link", 'r')
+  f = io.popen("cat /sys/class/ieee80211/`ls /sys/class/ieee80211/|head -n 1`/macaddress", 'r')
   line = f:read("*line")
   f:close()
   if line == nil then
@@ -374,11 +371,7 @@ load_config()
 --system_type = get_system_type()
 --print("System: "..system_type)
 
-if table.getn(arg) == 2 then
-  begin_connection(arg[1], tonumber(arg[2]))
-else
-  find_server_and_connect()
-end
+find_server_and_connect()
 
 
 
