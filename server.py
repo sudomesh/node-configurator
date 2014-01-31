@@ -349,6 +349,7 @@ def start():
 
     # Build Web and WebSocket URIs
     hostname = config['server']['hostname']
+    web_hostname = config['server']['web_hostname']
     web_protocol = config['server']['protocol']
     websocket_protocol = None
 
@@ -362,8 +363,8 @@ def start():
     if ((web_protocol == 'http') and (web_port != 80)) or ((web_protocol == 'https') and (web_port != 443)):
         port_str = ':%s' % str(web_port)
 
-    websocket_uri = websocket_protocol + '://' + hostname + port_str
-    web_uri = web_protocol + '://' + hostname + port_str
+    websocket_uri = websocket_protocol + '://' + web_hostname + port_str
+    web_uri = web_protocol + '://' + web_hostname + port_str
 
     nodeWSFactory = NodeWSFactory(websocket_uri, nodeConfFactory=nodeConfFactory, debug=False)
 #    nodeWSFactory.protocol = ConfWebSocketProtocol
