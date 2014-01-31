@@ -343,7 +343,7 @@ def start():
 
     # create the node configuration server
     nodeConfFactory = NodeConfFactory(node_db=db)
-    reactor.listenSSL(int(config['server']['port']), nodeConfFactory, contextFactory)
+    reactor.listenSSL(int(config['server']['port']), nodeConfFactory, contextFactory, interface=config['server']['hostname'])
     # create the WebSocket server.
 #    webSocketFactory = WebSocketServerFactory("wss://localhost:%d" % WEBSERVER_PORT, debug=False)
 
@@ -394,7 +394,7 @@ def start():
 
     webServerFactory = Site(nodeHttpResource)
 
-    reactor.listenSSL(web_port, webServerFactory, contextFactory)
+    reactor.listenSSL(web_port, webServerFactory, contextFactory, interface=config['server']['web_hostname'])
 
     service = ZeroconfService(name="sudomesh node configurator", stype=config['server']['service_type'], port=int(config['server']['port']))
 
