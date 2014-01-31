@@ -24,6 +24,7 @@ config dhcp meshpool
 	list dhcp_option	'1,255.0.0.0' # subnet mask
 	list dhcp_option	'3,<exit_node_mesh_ipv4_addr>' # gateway
 	list dhcp_option	'6,<exit_node_mesh_ipv4_addr>' # DNS
+  list dhcp_option  '26,1400' # MTU
 
 config dhcp privatepool
 	option interface	'priv'

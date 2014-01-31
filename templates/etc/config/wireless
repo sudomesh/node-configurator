@@ -22,7 +22,7 @@ config wifi-iface
 #	option network 'mesh'
 	option mode 'adhoc'
 	option bssid 'CA:FE:C0:DE:F0:0D'
-	option ssid 'peoplesopen.net-backchannel'
+	option ssid 'pplsopen.net-node2node'
 
 # the private wpa2 interface
 config wifi-iface

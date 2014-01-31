@@ -240,8 +240,8 @@ class TemplateCompiler():
 
         # TODO put these in config file
         self.nodeConfig['user_name'] = 'admin'
-        self.nodeConfig['relay_node_inet_ipv4_addr'] = '192.157.221.200'
-        self.nodeConfig['exit_node_mesh_ipv4_addr'] = '10.42.0.11'
+        self.nodeConfig['relay_node_inet_ipv4_addr'] = '199.175.49.22'
+        self.nodeConfig['exit_node_mesh_ipv4_addr'] = '10.42.10.10'
 
         return self.nodeConfig
 
