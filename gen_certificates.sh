@@ -57,6 +57,10 @@ DOMAIN=nodeconf.local
 COUNTRY=US
 STATE=CA
 
+STARTDATE=""
+#STARTDATE="-startdate 131231000001Z" # date format is YYMMDDHHMMSSZ
+
+
 NODECONF_DOMAIN=nodeconf.local
 
 # default to 256 bit AES encryption with passphrase
@@ -87,17 +91,21 @@ if [ $# -gt 0 ]; then
         echo "  nopass: Do not password-protect private keys." 
         echo "          WARNING: Use for testing only!"
         echo " "
-        exit 0
-
-    elif [ "$1" = "nopass" ] || [ "$2" = "nopass" ]; then
-        PASS_OPTION=""
-
-        echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-        echo "!!           WARNING            !!"
-        echo "!!    passphrase turned off     !!"
-        echo "!! private keys are unencrypted !!"
-        echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+        echo "You can change the effective start date for generated certs"
+        echo "by editing the script and changing the STARTDATE variable."
         echo " "
+        exit 0
+    else
+        if [ "$1" = "nopass" ] || [ "$2" = "nopass" ]; then
+            PASS_OPTION=""
+
+            echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+            echo "!!           WARNING            !!"
+            echo "!!    passphrase turned off     !!"
+            echo "!! private keys are unencrypted !!"
+            echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+            echo " "
+        fi
     fi
 fi
 
@@ -192,7 +200,7 @@ fi
 
 echo "== Generating subordinate CA certificate =="
 echo " "
-openssl ca -batch -in certs/ca_sub.csr -keyfile certs/ca_root.key -cert certs/ca_root.crt -out certs/ca_sub.crt -outdir certs/ -config openssl.cnf -extensions v3_ca -startdate 131231000001Z -days 3650
+openssl ca -batch -in certs/ca_sub.csr -keyfile certs/ca_root.key -cert certs/ca_root.crt -out certs/ca_sub.crt -outdir certs/ -config openssl.cnf -extensions v3_ca $STARTDATE -days 3650
 
 if [ ! $? -eq 0 ]; then
     echo "Error generating subordinate CA certificate"
@@ -228,7 +236,7 @@ fi
 
 echo "== Generating nodeconf server certificate =="
 echo " "
-openssl ca -batch -in certs/nodeconf.csr -keyfile certs/ca_sub.key -cert certs/ca_sub.crt -out certs/nodeconf.crt -outdir certs/ -config openssl.cnf -startdate 131231000001Z -days 730
+openssl ca -batch -in certs/nodeconf.csr -keyfile certs/ca_sub.key -cert certs/ca_sub.crt -out certs/nodeconf.crt -outdir certs/ -config openssl.cnf $STARTDATE -days 730
 
 if [ ! $? -eq 0 ]; then
     echo "Error generating nodeconf server certificate"
