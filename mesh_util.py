@@ -420,12 +420,15 @@ class NodeConfigResource(Resource):
             reply['error'] = "Unrecognized message type: " + msg['type']
             return json.dumps(reply)
 
-        if not self.nodeConfFactory.configureNode(msg['data']):
-            if msg['type'] != "node_config":
-                reply['status'] = "error"
-                # TODO better error message
-                reply['error'] = "Node configuration failed"
-                return json.dumps(reply)
+        try:
+            if not self.nodeConfFactory.configureNode(msg['data']):
+                raise "Unknown error"
+        except:
+            e = sys.exc_info()[0]
+            reply['status'] = "error"
+            # TODO better error message
+            reply['error'] = "Node configuration failed: %s" % e
+            return json.dumps(reply)
 
         return json.dumps(reply)
 

@@ -230,6 +230,7 @@ var NodeConf = {
         };
         
         $.post('configure', JSON.stringify(msg), this.submit_callback.bind(this));
+        $('#loading').css('display', 'block');
 
         e.stopPropagation();
         e.preventDefault();
@@ -237,13 +238,14 @@ var NodeConf = {
     },
     
     submit_callback: function(msg_str, textStatus) {
+        $('#loading').css('display', 'none');
         // TODO report actual success or failure
         var msg = $.parseJSON(msg_str);
         if(!msg || (msg.status != 'success')) {
             $('#flash').html("<p>Error: " + msg.error + "</p>");
             return false;
         }
-        $('#flash').html("<p>Node configuration sent.</p>");
+        $('#flash').html("<p>Node configuration sent. Node will configure itself and reboot.</p>");
     },
 
     form_changed: function(e) {
