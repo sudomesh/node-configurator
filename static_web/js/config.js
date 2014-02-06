@@ -43,6 +43,7 @@ var NodeConf = {
 
     init_continued: function() {
 
+        console.log("Connecting to websocket uri: " + this.websocket_uri);
         this.sock = new WebSocket(this.websocket_uri);
         this.node_template = _.template($('#node_template').html());
         this.node_form_template = _.template($('#node_form_template').html());

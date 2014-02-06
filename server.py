@@ -285,7 +285,7 @@ class NodeWSFactory(WebSocketServerFactory):
 
     def nodeAppeared(self, nodeInfo):
 
-        log.msg("Sending updated nodelist to one of %d websockets" % len(self.websockets))
+        log.msg("Sending updated nodelist %d websockets" % len(self.websockets))
         msg = {}
         msg['type'] = 'node_appeared'
         msg['data'] = nodeInfo
