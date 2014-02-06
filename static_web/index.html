@@ -5,7 +5,6 @@
     <!-- mass-produced css from the interwebs -->
     <link href="/static/css/bootstrap.css" rel="stylesheet">
     <link href="/static/css/flat-ui.css" rel="stylesheet">
-    <link href="/static/css/loading.css" rel="stylesheet">
  
     <!-- sweet homebrewed css. mmm... -->
     <link href="/static/css/config.css" rel="stylesheet">
@@ -53,21 +52,8 @@
           Private wifi SSID: <input id="private_wifi_ssid" type="text" name="private_wifi_ssid" value="<%- conf.private_wifi_ssid %>"> (e.g: Milliways) <button id="btn_gen_ssid">Generate</button><br>
 
           <div id="loading" style="display:none">
-            Sending node configuration. Please stand by.
-            <div class="peeek-loading">
-              <ul>
-                <li></li>
-                <li></li>
-                <li></li>
-                <li></li>
-                <li></li>
-                <li></li>
-                <li></li>
-                <li></li>
-                <li></li>
-                <li></li>
-              </ul>
-            </div>
+            <p>Sending node configuration. Please stand by.</p>
+            <img src="media/loading.gif" />
           </div>
           
           <input type="submit" id="node_detail_form_button" value="Configure node">  - <button id="btn_print_sticker">Print sticker</button>
