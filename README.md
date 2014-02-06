@@ -13,7 +13,6 @@ For testing it may be easier to turn off password protection for the SSL certifi
 This will generate a self-signed key/crt for a root CA, a key/crt for a subordinate CA signed by the root CA and finally a crt/key signed by the subordinate CA which is used as the crt/key pair for the python server.
 
 # Server #
-
 ## Prerequisites ##
 
 For a typical modern Debian / Ubuntu desktop machine first install some prerequisites:
@@ -31,4 +30,48 @@ Simply do:
   ./start_server.sh
 
 
-  
+# Setup #
+
+## Configuration ##
+
+## Security ##
+
+IMPORTANT: PLEASE READ THE FOLLOWING.
+
+If you are configuring nodes that are to be managed by an existing group, such as sudo mesh, then you need to obtain the SSL certificates and SSH keys from that group. If you are setting up your own node(s) that you want to manage yourself, then follow the instructions in the following sections. 
+
+You should generate both SSL certs and SSH keys on a secured computer that is not (and preferably never has been) plugged in to a network. You should keep the root certificate key file in multiple very secure locations, since they are only needed when revoking or creating new subordinate certificates. You should keep the subordinate certificate key on a secure and disconnected computer, as it will only be used to generate certificates for new mesh services. You should keep the private SSH key on a disconnected computer, and only connect it to the network when absolutely needed. In the future, hopefully we can get around having to keep the SSH key on an internet-connected computer at all.
+
+If you generate your own SSL certs and SSH keys, then you will have to compile your own firmware. 
+
+### Choosing passwords ###
+
+You should use reasonably secure passwords. You probably won't be able to remember them, as you won't be using them very often, but you could use xkcd-style passwords to make them easier to memorize for short periods of time:
+
+* [redacted's xkcd-style password generator](https://github.com/redacted/XKCD-password-generator)
+
+### SSL certificates ###
+
+Use ./gen_certificates.sh to generate certifiates. It will ask you for a root cert password and a subordinate cert password. You will be asked for these passwords multiple times during certificate generation.
+
+You will only need to keepy certs/nodeconf.key and certs/nodeconf_chain.crt on the computer running node-configurator. Keeping the other .key files on the computer running node-configurator is a mayor security issue.
+
+### SSH keys ###
+
+To generate ssh keys, use:
+
+```
+ssh-keygen -t rsa
+```
+
+Copy the pub key (e.g. id_rsa.pub) that you want to give root access to all configured nodes to the authorized_keys/ directory. It doesn't matter what their filenames are, so you can give them helpful names.
+
+### Compiling firmware with new SSL key ###
+
+You should get [the sudo mesh firmware](https://github.com/sudomesh/openwrt-firmware) and copy your generated ca_root.crt to openwrt-firmware/files/etc/certs/ca_root.crt
+
+Follow the instructions in openwrt-firmware/README to compile the firmware containing the new certificate. Routers flashed with this firmware will automatically connect to your node-configurator if on the same LAN.
+
+# Some assumptions #
+
+Currently, to make all of this work, you need to be running avahi on the computer running the node configurator. Avahi must be configured with the hostname nodeconf.local (this requirement should be removed in future versions). It is also assumed that a DHCP server is running on the LAN. 
