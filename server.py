@@ -13,13 +13,13 @@ from twisted.web.server import Site
 from twisted.protocols.basic import LineReceiver
 from twisted.web.client import Agent
 
-from autobahn.websocket import WebSocketServerFactory, \
+from autobahn.twisted.websocket import WebSocketServerFactory, \
                                WebSocketServerProtocol, \
                                listenWS
 
 from netaddr import * # for OUI database lookups
 
-from autobahn.resource import WebSocketResource
+from autobahn.twisted.resource import WebSocketResource
 
 from pprint import pprint 
 

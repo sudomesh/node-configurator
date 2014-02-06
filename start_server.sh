@@ -1,4 +1,4 @@
 #!/bin/sh
 
-. pyvirt-node-configurator/bin/activate
+. pyvirt/bin/activate
 python server.py

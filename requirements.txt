@@ -1,2 +1,2 @@
-autobahn==0.8.0
+autobahn[twisted]==0.7.2
 netaddr==0.7.10

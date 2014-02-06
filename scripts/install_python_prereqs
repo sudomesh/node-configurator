@@ -1,5 +1,7 @@
 #!/bin/sh
 
-virtualenv --system-site-packages pyvirt-node-configurator
-. pyvirt-node-configurator/bin/activate
+virtualenv --system-site-packages pyvirt
+. pyvirt/bin/activate
+wget https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py -O - | python
+easy_install -U setuptools
 pip install -r requirements.txt
