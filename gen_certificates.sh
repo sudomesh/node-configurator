@@ -192,7 +192,7 @@ fi
 
 echo "== Generating subordinate CA certificate =="
 echo " "
-openssl ca -batch -in certs/ca_sub.csr -keyfile certs/ca_root.key -cert certs/ca_root.crt -out certs/ca_sub.crt -outdir certs/ -config openssl.cnf -extensions v3_ca -days 3650
+openssl ca -batch -in certs/ca_sub.csr -keyfile certs/ca_root.key -cert certs/ca_root.crt -out certs/ca_sub.crt -outdir certs/ -config openssl.cnf -extensions v3_ca -startdate 131231000001Z -days 3650
 
 if [ ! $? -eq 0 ]; then
     echo "Error generating subordinate CA certificate"
@@ -228,7 +228,7 @@ fi
 
 echo "== Generating nodeconf server certificate =="
 echo " "
-openssl ca -batch -in certs/nodeconf.csr -keyfile certs/ca_sub.key -cert certs/ca_sub.crt -out certs/nodeconf.crt -outdir certs/ -config openssl.cnf -days 730
+openssl ca -batch -in certs/nodeconf.csr -keyfile certs/ca_sub.key -cert certs/ca_sub.crt -out certs/nodeconf.crt -outdir certs/ -config openssl.cnf -startdate 131231000001Z -days 730
 
 if [ ! $? -eq 0 ]; then
     echo "Error generating nodeconf server certificate"
