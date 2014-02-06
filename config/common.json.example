@@ -1,6 +1,6 @@
 {
         "utils": {
-                "mdnssd_min": "/home/juul/projects/meshing/firmware/mdnssd-mini/mdnssd-min"
+                "mdnssd_min": "/usr/local/bin/mdnssd-min"
         },
         "client": {
                 "download_path": "/tmp",
