@@ -60,7 +60,6 @@ STATE=CA
 STARTDATE=""
 #STARTDATE="-startdate 131230000001Z" # date format is YYMMDDHHMMSSZ
 
-
 NODECONF_DOMAIN=nodeconf.local
 
 # default to 256 bit AES encryption with passphrase
@@ -174,7 +173,7 @@ fi
 # root CA certificate 
 echo "== Generating root CA certificate  =="
 echo " "
-openssl ca -batch -selfsign -keyfile certs/ca_root.key -md sha256 -in certs/ca_root.csr -out certs/ca_root.crt -outdir certs/ -config openssl.cnf -days 3650 -extensions v3_ca
+openssl ca -batch -selfsign -keyfile certs/ca_root.key -md sha256 -in certs/ca_root.csr -out certs/ca_root.crt -outdir certs/ -config openssl.cnf -days 3650 $STARTDATE -extensions v3_ca
 
 if [ ! $? -eq 0 ]; then
     echo "Error generating root CA certificate"
