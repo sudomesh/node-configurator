@@ -58,7 +58,7 @@ COUNTRY=US
 STATE=CA
 
 STARTDATE=""
-#STARTDATE="-startdate 131231000001Z" # date format is YYMMDDHHMMSSZ
+#STARTDATE="-startdate 131230000001Z" # date format is YYMMDDHHMMSSZ
 
 
 NODECONF_DOMAIN=nodeconf.local
@@ -161,10 +161,20 @@ if [ ! $? -eq 0 ]; then
     die
 fi
 
-# root CA certificate
-echo "== Generating root CA certificate =="
+# root CA certificate signing request
+echo "== Generating root CA certificate signing request =="
 echo " "
-openssl req -batch -x509 -sha256 -new -subj "/C=${COUNTRY}/ST=${STATE}/O=${ORGANIZATION}/CN=${DOMAIN}" -key certs/ca_root.key -out certs/ca_root.crt -config openssl.cnf -days 3650 -extensions v3_ca
+openssl req -batch -new -subj "/C=${COUNTRY}/ST=${STATE}/O=${ORGANIZATION}/CN=${DOMAIN}" -key certs/ca_root.key -out certs/ca_root.csr -config openssl.cnf
+
+if [ ! $? -eq 0 ]; then
+    echo "Error generating root CA certificate signing request"
+    die
+fi
+
+# root CA certificate 
+echo "== Generating root CA certificate  =="
+echo " "
+openssl ca -batch -selfsign -keyfile certs/ca_root.key -md sha256 -in certs/ca_root.csr -out certs/ca_root.crt -outdir certs/ -config openssl.cnf -days 3650 -extensions v3_ca
 
 if [ ! $? -eq 0 ]; then
     echo "Error generating root CA certificate"

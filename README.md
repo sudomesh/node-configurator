@@ -56,6 +56,8 @@ Use ./gen_certificates.sh to generate certifiates. It will ask you for a root ce
 
 You will only need to keepy certs/nodeconf.key and certs/nodeconf_chain.crt on the computer running node-configurator. Keeping the other .key files on the computer running node-configurator is a mayor security issue.
 
+NOTE: It is likely that your newly flashed nodes will have the wrong date set, which can cause problems with SSL. As of this writing, OpenWRT attitude adjustment (upon which the sudoWRT is based) seems to set the initial date to 2014-01-01.Since the SSL generated certificates are only valid starting from the date and time they were created, the nodes will refuse to connect to the node-configurator. You can edit the gen_certificates.sh scripts and change the STARTDATE variable to e.g. 13123101000001Z (January 31st, 2013, 00:00:01) before you generate the certificates, and you will have certificates that are valid from the earlier date. A prettier solution might be to set the firmware date before flashing, but realistically we'll sometimes want to generate new SSL certificates that are trusted by nodes that have been flashed a long time ago (e.g. if we have a stock of already flashed nodes and need to configure them from a new server), so this solution seems good.
+
 ### SSH keys ###
 
 To generate ssh keys, use:
@@ -75,3 +77,4 @@ Follow the instructions in openwrt-firmware/README to compile the firmware conta
 # Some assumptions #
 
 Currently, to make all of this work, you need to be running avahi on the computer running the node configurator. Avahi must be configured with the hostname nodeconf.local (this requirement should be removed in future versions). It is also assumed that a DHCP server is running on the LAN. 
+

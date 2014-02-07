@@ -53,6 +53,8 @@ function connect(ip, port)
 
   -- TLS/SSL client parameters (omitted)
   local params
+  local err
+  local success
 
   local conn = socket.tcp()
   conn:connect(ip, port)
@@ -61,7 +63,7 @@ function connect(ip, port)
     mode = "client",
     protocol = "tlsv1",
   --  capath = "/etc/ssl/certs",
-    cafile = "/etc/nodeconf/certs/ca_root.crt",
+    cafile = "certs/ca_root.crt",
   -- key = "/etc/certs/clientkey.pem",
   --  certificate = "/etc/certs/client.pem",
     verify = "peer",
@@ -69,8 +71,13 @@ function connect(ip, port)
   }
 
   -- TLS/SSL initialization
-  conn = ssl.wrap(conn, params)
-  conn:dohandshake()
+  conn, err = ssl.wrap(conn, params)
+  if not conn then
+    print("Fail: " .. err)
+    return conn, err
+  end
+
+  success, err = conn:dohandshake()
 
   return conn
 end
@@ -246,7 +253,6 @@ function begin_connection(ip, port)
 
   if not c then
      print("Failed to connect")
-     conn:close()
      return false
   end
 
@@ -289,7 +295,7 @@ function find_server_and_connect()
         break
       end
       hostname, ip, port = string.match(line, "(.+)%s+(.+)%s+(.+)")
-  --    print("host: "..hostname.." | ip: "..ip.." | port: "..port)
+--    print("host: "..hostname.." | ip: "..ip.." | port: "..port)
       if hostname ~= nil and ip ~= nil and port ~= nil then
         res = begin_connection(ip, port)
         if res == true then
@@ -297,7 +303,7 @@ function find_server_and_connect()
           return true
         end
       end
-    end
+   end
     mdns:close()
     print("Could not connect. Sleeping for 5 seconds")
     sleep(5)
