@@ -7,6 +7,7 @@ import random
 import threading
 import re
 import os
+import sys
 import shutil
 import urllib
 import subprocess
@@ -44,18 +45,18 @@ class NodeDB():
         self.local_backup_dir = "fakedb"
         self.basePath = os.getcwd()
         self.outPath = os.path.join(self.basePath, self.local_backup_dir)
-        
+
     # This method creates the node in the database
     # and gets e.g. IP addresses and UUIDs assigned
     # from the database at the same time.
     def create(self, nodeConfig):
-        
+
         if not nodeConfig or not nodeConfig['mac_addr'] or (nodeConfig['mac_addr'] == ''):
             return False
 
         # TODO also make a local backup after IP assigned?
         self.local_backup(nodeConfig)
-        
+
         nodeConfig['type'] = 'node'
 
         params = urllib.urlencode({'data': json.dumps(nodeConfig)})
@@ -64,24 +65,24 @@ class NodeDB():
         con.request("POST", "/nodes", params, headers)
         response = con.getresponse()
         # TODO check response code
-        data_str = response.read() 
+        data_str = response.read()
         print "DATA STR: " + data_str
         msg = json.loads(data_str)
         return msg['data']
-                    
+
     def local_backup(self, nodeConfig):
         outFileName = 'node-config-'+re.sub(':', '-', nodeConfig['mac_addr'])+'.json'
         outFile = os.path.join(self.outPath, outFileName)
 
         if not os.path.exists(self.outPath):
             os.makedirs(self.outPath)
-        
+
         f = open(outFile, 'w')
         f.write(json.dumps(nodeConfig))
         f.close()
-        
+
         return outFile
-    
+
 
 class SSIDGenerator():
 
@@ -123,9 +124,9 @@ class TemplateCompiler():
         if not os.path.isabs(self.outputDir):
             self.outputDir = os.path.join(self.base_path, self.outputDir)
 
-        
+
     # writes data to file at path
-    # if either file or any dirs that are part of path 
+    # if either file or any dirs that are part of path
     # don't exist, then they are created
     # if file exists, overwrite
     # mode is permissions mode as an integer
@@ -138,7 +139,7 @@ class TemplateCompiler():
         f = os.fdopen(os.open(path, os.O_WRONLY | os.O_CREAT, mode), 'w')
         f.write(data)
         f.close()
-        
+
     # takes uncompiled data (a template) as input
     # returns compiled data
     def compile_data(self, data):
@@ -179,7 +180,7 @@ class TemplateCompiler():
         if not 'root_password' in self.nodeConfig:
             self.nodeConfig['root_password'] = self.generate_password(length)
         self.nodeConfig['root_password_hash'] = self.hash_password(self.nodeConfig['root_password'])
-        
+
 
     def generate_user_password(self, length):
         if not 'user_password' in self.nodeConfig:
@@ -190,14 +191,14 @@ class TemplateCompiler():
     # upper and lower case letters, numbers and # and !
     def generate_password(self, length):
         chars = string.letters + string.digits + '#!'
-        
-        # if this check fails, 
+
+        # if this check fails,
         # there will be bias in passwords
         if len(chars) != 64:
             raise "password generator security compromised!"
         password = ''.join(chars[ord(os.urandom(1)) % 64] for _ in xrange(14))
         return password
-        
+
 
     # read all authorized keys from the authorized_keys/ dir
     # and combine them and add them to nodeConfig
@@ -245,7 +246,7 @@ class TemplateCompiler():
 
         return self.nodeConfig
 
-    def set_batman_gateway_mode(self):    
+    def set_batman_gateway_mode(self):
         if 'batman_gw_mode' in self.nodeConfig and self.nodeConfig['batman_gw_mode'] != '':
             return
 
@@ -282,10 +283,10 @@ class IPKBuilder():
         dirname = 'per-node-config-'+self.nodeConfig['mac_addr'].replace(':', '-')
         self.staging_dir  = os.path.join(self.base_path, 'staging', dirname)
         self.ipk_file = os.path.join(self.base_path, 'ipks', dirname+'.ipk')
-        
+
 
     def stage(self):
-        
+
         try:
             shutil.rmtree(self.staging_dir)
         except:
@@ -307,7 +308,7 @@ class IPKBuilder():
         os.makedirs("etc/dropbear", 0755)
         os.chdir("etc/dropbear")
         subprocess.call(["/bin/sh", "../../../../../scripts/gen_ssh_keys.sh"])
-             
+
         os.chdir(self.base_path)
 
         return self.staging_dir
@@ -344,7 +345,7 @@ class GetSSIDResource(Resource):
     isLeaf = True
 
     def __init__(self, nodeConfFactory, wordlist):
-        self.nodeConfFactory = nodeConfFactory        
+        self.nodeConfFactory = nodeConfFactory
         self.ssidGenerator = SSIDGenerator(wordlist)
 
     def render_POST(self, request):
@@ -361,7 +362,7 @@ class PrintStickerResource(Resource):
 
     def __init__(self, nodeConfFactory, stickerPath):
         self.stickerPath = stickerPath
-        self.nodeConfFactory = nodeConfFactory  
+        self.nodeConfFactory = nodeConfFactory
 
     def save_base64_png(self, image):
         if not image:
@@ -377,7 +378,7 @@ class PrintStickerResource(Resource):
     def render_POST(self, request):
         msg_str = request.content.read()
         msg = json.loads(msg_str)
-        
+
         if (not msg) or ('image' not in msg):
             msg = {
                 'status' : 'error',
@@ -409,7 +410,7 @@ class NodeConfigResource(Resource):
         msg_str = request.content.read()
         msg_str = self.sanitize_msg(msg_str)
         msg = json.loads(msg_str)
-        
+
         if not msg:
             reply['status'] = "error"
             reply['error'] = "Server could not parse JSON submitted by client"
@@ -445,7 +446,7 @@ class NodeStaticResource(Resource):
                 return f
             else:
                 return child
-        
+
 
         f = File(STATIC_DIR_PATH + "/" + INDEX_FILE_NAME)
         if f.exists():
@@ -542,4 +543,4 @@ class FakeNodePopulatorThread(threading.Thread):
 
     def finish(self):
         self._running = False
-        
+
