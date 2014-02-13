@@ -32,7 +32,7 @@ Copy config/server.json.example to config.json and edit it to suit your needs.
 * web_port: The port where the node configurator web server listens for web browsers to connect.
 * db_host: The hostname/IP and port (separated by a colon) where your [node database](https://github.com/sudomesh/node-database) is running.
 * wordlist: The word list used to generate wifi SSID names.
-* configure_cmd: The command to be run on the node in order to configure it after it has received the configuration from the node-configurator server. If the sub-string <file> is present, then it will be substituted by the name of the file sent to the node by the node-configurator (usually an ipk file) before being run.
+* configure_cmd: The command to be run on the node in order to configure it after it has received the configuration from the node-configurator server. If the sub-string "<file>" is present, then it will be substituted by the name of the file sent to the node by the node-configurator (usually an ipk file) before being run.
 * post_configure_cmd: The command to be run on the node after successfully completing the configure_cmd successfully (usually "reboot").
 * service_type: The service type to use for node-configurator DNS-SD announcements (via Avahi).
 
