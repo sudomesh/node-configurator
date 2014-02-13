@@ -190,6 +190,7 @@ class NodeProtocol(LineReceiver):
 
         self.sendConfig(ipk_file_path)
         
+        return nodeConfig
 
     def lookup_org_from_mac(self, mac_addr):
         mac = EUI(mac_addr)
@@ -250,8 +251,7 @@ class NodeConfFactory(protocol.Factory):
     def configureNode(self, nodeConfig):
         for node in self.nodes:
             if nodeConfig['mac_addr'] == node.nodeInfo['mac_addr']:
-                node.configure(nodeConfig)
-                return True
+                return node.configure(nodeConfig)
 
         return False
             

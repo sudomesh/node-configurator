@@ -62,13 +62,13 @@ var StickerGenerator = function(elementID, w, h) {
         this.drawLine(ctx, "wifi network:");
         this.drawLine(ctx, info.private_wifi_ssid, true);
         this.drawLine(ctx, "wifi password:");
-        this.drawLine(ctx, info.private_wifi_password, true);
+        this.drawLine(ctx, info.private_wifi_key, true);
         this.drawLine(ctx, "go to website:");
         this.drawLine(ctx, "http://my.node/", true);
         this.drawLine(ctx, "username is:");
-        this.drawLine(ctx, "root", true);
+        this.drawLine(ctx, "admin", true);
         this.drawLine(ctx, "password is:");
-        this.drawLine(ctx, info.root_password, true);
+        this.drawLine(ctx, info.user_password, true);
         this.drawLine(ctx, "for support go to");
         this.drawLine(ctx, "h.sudoroom.org", true);
     };

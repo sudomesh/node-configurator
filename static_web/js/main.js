@@ -130,6 +130,14 @@ var NodeConf = {
 
         if(data.status == 'success') {
             $('#flash')[0].innerHTML += "<p>Node successfully configured. Rebooting node.</p>";
+            if(data.node_config) {
+                $('#flash')[0].innerHTML += "<p>Generating sticker.</p>";
+
+                this.stickerGen.draw(data.node_config);
+                $('#flash')[0].innerHTML += "<p>root password (not included on sticker) is: "+data.node_config.root_password+"</p>";
+            } else {
+                $('#flash')[0].innerHTML += "<p>Node configuration was not received. Cannot generate sticker :(</p>";
+            }
         } else {
             $('#flash')[0].innerHTML += "<p>Error running command on node: " + data.cmd_output + "</p>";
             console.log("Exit code: " + data.exit_code);
@@ -184,11 +192,6 @@ var NodeConf = {
         form.submit(this.form_submit.bind(this));
 
         this.stickerGen = new StickerGenerator(336, 873, 'stickerPreview');
-        this.stickerGen.draw({
-            private_wifi_ssid: "hacktheplanet",
-            private_wifi_password: "neajFibeef8",
-            root_password: "UnMuHymmEyp3"
-        });
 
         $('#btn_gen_ssid').click(function(e) {
             e.stopPropagation();
@@ -269,41 +272,6 @@ var NodeConf = {
         if(this.nodes.length <= 0) {
             $('#node_list').html("<p>No nodes connected.<p>");
         }
-    },
-
-    // TODO unused
-    update_node_list: function(nodes) {
-
-        var container = $('#node_list');
-        if(nodes.length <= 0) {
-            container.html("<p>No nodes connected.<p>");
-        } else {
-            container.html('');
-        }
-        var i, h;
-        for(i=0; i < nodes.length; i++) {
-            h = this.node_template(nodes[i]);
-            container.append(h);
-        }
-    },
-
-    send_command: function() {
-        fakeNode = {
-            "hardware_model"   : "Ubiquity nano-station",
-            "firmware_version" : "SudoNode v0.5",
-            "geo_location"     : "Oakland, CA",
-            "op_name"          : "A Cool Person",
-            "op_email"         : "coolpeer@idk.org",
-            "op_phone"         : "1-555-555-1337"
-        };
-        
-        fakeCommand = {
-            "command"   : "node::set_config",
-            "socket_id" : Math.floor(Math.random() * 100),
-            "node_obj"  : fakeNode
-        };
-        
-        sock.send(JSON.stringify(fakeCommand));
     }
 };
 

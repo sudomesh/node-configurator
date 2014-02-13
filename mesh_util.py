@@ -373,6 +373,7 @@ class PrintStickerResource(Resource):
         f = open(os.path.join(self.stickerPath, 'out.png'), 'w')
         f.write(decoded)
         f.close()
+        # TODO run command to print sticker
 
     def render_POST(self, request):
         msg_str = request.content.read()
@@ -421,8 +422,11 @@ class NodeConfigResource(Resource):
             return json.dumps(reply)
 
         try:
-            if not self.nodeConfFactory.configureNode(msg['data']):
+            res = self.nodeConfFactory.configureNode(msg['data'])
+            if not res:
                 raise "Unknown error"
+
+            reply['node_config'] = res
         except:
             e = sys.exc_info()[0]
             reply['status'] = "error"
