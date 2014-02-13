@@ -165,29 +165,35 @@ class NodeProtocol(LineReceiver):
         # Step 2: Build the IPK
 
         builder = IPKBuilder(nodeConfig)
+        print "staging ipk"
         stagingDir = builder.stage()
-        
+        print "initializing template compiler"
         dataDir = os.path.join(stagingDir, 'data')
         tcompiler = TemplateCompiler(nodeConfig, 'templates', dataDir, config['wordlist'])
 
+        print "running template compiler assign"
         nodeConfig = tcompiler.assign()
 
         # create the node in the database
         # and receive the nodeConfig with assigned
         # IP address and unique id
+        print "talking to node database"
         nodeConfig = self.factory.node_db.create(nodeConfig)
         if not nodeConfig:
             # TODO bubble error up to browser
             print "-- Error talking to node database"
             return
 
+        print "running template compiler compile"
         tcompiler.compile(nodeConfig)
 
+        print "building ipk"
         ipk_file_path = builder.build()
         builder.clean()
 
         # Step 3: Send the IPK to the node
 
+        print "sending ipk to node"
         self.sendConfig(ipk_file_path)
         
         return nodeConfig

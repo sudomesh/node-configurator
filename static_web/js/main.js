@@ -29,7 +29,7 @@ $.fn.serializeObject = function()
 var NodeConf = {
 
     name: "Node Configurator",
-    config_file: 'static/config/common.json',
+    config_file: 'static/config/server.json',
     websocket_uri: null,
     last_timer: null,
     CONST_INTERVAL_MS: 5000,
@@ -104,7 +104,7 @@ var NodeConf = {
             };
 
             // build websocket uri
-            this.websocket_uri = websocket_protocol + '://' + window.location.hostname + port + this.config.server.websocket_path;
+            this.websocket_uri = websocket_protocol + '://' + window.location.hostname + port + this.config.websocket_path;
             this.init_continued();
         }.bind(this));
 
@@ -130,14 +130,6 @@ var NodeConf = {
 
         if(data.status == 'success') {
             $('#flash')[0].innerHTML += "<p>Node successfully configured. Rebooting node.</p>";
-            if(data.node_config) {
-                $('#flash')[0].innerHTML += "<p>Generating sticker.</p>";
-
-                this.stickerGen.draw(data.node_config);
-                $('#flash')[0].innerHTML += "<p>root password (not included on sticker) is: "+data.node_config.root_password+"</p>";
-            } else {
-                $('#flash')[0].innerHTML += "<p>Node configuration was not received. Cannot generate sticker :(</p>";
-            }
         } else {
             $('#flash')[0].innerHTML += "<p>Error running command on node: " + data.cmd_output + "</p>";
             console.log("Exit code: " + data.exit_code);
@@ -250,6 +242,16 @@ var NodeConf = {
             return false;
         }
         $('#flash').html("<p>Node configuration sent. Node will configure itself and reboot.</p>");
+
+        if(msg.node_config) {
+            $('#flash')[0].innerHTML += "<p>Generating sticker.</p>";
+            
+            this.stickerGen.draw(msg.node_config);
+            $('#flash')[0].innerHTML += "<p>root password (not included on sticker) is: "+msg.node_config.root_password+"</p>";
+        } else {
+            $('#flash')[0].innerHTML += "<p>Node configuration was not received. Cannot generate sticker :(</p>";
+        }
+
     },
 
     form_changed: function(e) {

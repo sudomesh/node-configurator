@@ -8,12 +8,15 @@ if [ ! $? -eq 0 ]; then
     exit 1
 fi
 
-ln -s dev-certs/ssh_certs/id_rsa.pub authorized_keys/dev_key.pub
+cd authorized_keys/
+ln -s ../dev-certs/ssh_certs/id_rsa.pub dev_key.pub
 
 if [ ! $? -eq 0 ]; then
     echo "Error creating symlink authorized_keys/dev_key.pub"
     exit 1
 fi
+
+cd ../
 
 ln -s dev-certs/ssl_certs certs
 

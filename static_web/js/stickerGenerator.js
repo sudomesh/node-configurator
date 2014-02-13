@@ -53,28 +53,29 @@ var StickerGenerator = function(elementID, w, h) {
         this.curLine = 0;
         this.drawLine(ctx, "This is the power");
         this.drawLine(ctx, "supply for your");
-        this.drawLine(ctx, "sudomesh", true);
-        this.drawLine(ctx, "node", true);
+        this.drawLine(ctx, "sudomesh node", true);
+//        this.drawLine(ctx, "node", true);
         this.drawLine(ctx, "---------------");
         this.drawLine(ctx, "To change your");
         this.drawLine(ctx, "node settings");
         this.drawLine(ctx, "connect to the");
-        this.drawLine(ctx, "wifi network:");
+        this.drawLine(ctx, "wifi network called:");
         this.drawLine(ctx, info.private_wifi_ssid, true);
-        this.drawLine(ctx, "wifi password:");
+        this.drawLine(ctx, "with wifi password:");
         this.drawLine(ctx, info.private_wifi_key, true);
-        this.drawLine(ctx, "go to website:");
+        this.drawLine(ctx, "then go to website:");
         this.drawLine(ctx, "http://my.node/", true);
-        this.drawLine(ctx, "username is:");
+        this.drawLine(ctx, "the username is:");
         this.drawLine(ctx, "admin", true);
-        this.drawLine(ctx, "password is:");
+        this.drawLine(ctx, "the password is:");
         this.drawLine(ctx, info.user_password, true);
+        this.drawLine(ctx, " ");
         this.drawLine(ctx, "for support go to");
-        this.drawLine(ctx, "h.sudoroom.org", true);
+        this.drawLine(ctx, "h.sudomesh.org", true);
     };
 
     this.drawLine = function(ctx, text, bold) {
-        var offset = this.curLine * 41 + 50;
+        var offset = this.curLine * 42 + 50;
 	      var middle = this.w / 2;
 	      ctx.font = (bold ? 'bold ' : '') + '31px sans-serif' 
         ctx.textAlign = 'center';

@@ -6,7 +6,7 @@ import avahi
 class ZeroconfService:
 
     def __init__(self, name, port, stype="_nodeconf._tcp",
-                 domain="", host="", text="http://sudomesh.org"):
+                 domain="", host="", text="http://peoplesopen.net"):
         self.name = name
         self.stype = stype
         self.domain = domain

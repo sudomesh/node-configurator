@@ -231,11 +231,17 @@ class TemplateCompiler():
     # assign things that haven't been assigned elsewhere
     # TODO remove hardcoded values
     def assign(self):
+        print "setting batman gatway mode"
         self.set_batman_gateway_mode() # assigns <batman_gateway_mode>
+        print "generating wifi ssid"
         self.generate_wifi_ssid() # assigns <private_wifi_ssid>
+        print "generating wifi key"
         self.generate_wifi_key(12) # assigns <private_wifi_key>
+        print "generating root password"
         self.generate_root_password(12) # assigns <root_password_hash>
+        print "generating user (admin) password"
         self.generate_user_password(8) # assigns <user_password_hash>
+        print "read authorized keys"
         self.read_authorized_keys() # assigns <ssh_authorized_keys>
 
         # TODO put these in config file
@@ -427,6 +433,7 @@ class NodeConfigResource(Resource):
                 raise "Unknown error"
 
             reply['node_config'] = res
+            reply['foo'] = 'bar'
         except:
             e = sys.exc_info()[0]
             reply['status'] = "error"

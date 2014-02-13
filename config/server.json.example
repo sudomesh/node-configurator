@@ -1,7 +1,7 @@
 {
-  "hostname": "10.0.0.1",
+  "hostname": "127.0.0.1",
   "port": "1337",
-  "web_hostname": "10.0.0.1",
+  "web_hostname": "127.0.0.1",
   "web_port": "8080",
   "db_host": "localhost:3000",
   "wordlist": "config/wordlist_simple",
