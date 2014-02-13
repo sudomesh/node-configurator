@@ -1,0 +1,16 @@
+{
+  "hostname": "10.0.0.1",
+  "port": "1337",
+  "web_hostname": "10.0.0.1",
+  "web_port": "8080",
+  "db_host": "localhost:3000",
+  "wordlist": "config/wordlist_simple",
+  "configure_cmd": "opkg --force-overwrite install <file>",
+  "post_configure_cmd": "reboot",
+  "service_type": "_nodeconf._tcp",
+
+  "protocol": "https",
+  "websocket_path": "/websocket",
+  "config_post_path": "/configure",
+  "get_ssid_path": "/get-ssid"
+}

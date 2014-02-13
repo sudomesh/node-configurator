@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 import json
 import time
 import string
@@ -29,7 +27,7 @@ import httplib
 # Implementation specific constants.
 STATIC_DIR_PATH = "./static_web"
 INDEX_FILE_NAME = "index.html"
-CONFIG_FILE = "config/common.json"
+CONFIG_FILE = "config/server.json"
 
 class Config():
 

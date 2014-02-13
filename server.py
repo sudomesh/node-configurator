@@ -128,8 +128,8 @@ class NodeProtocol(LineReceiver):
                 'file_name': fileName,
                 'file_size': fileSize,
                 'file_md5': fileMD5,
-                'run_cmd': config['server']['configure_cmd'],
-                'post_cmd': config['server']['post_configure_cmd']
+                'run_cmd': config['configure_cmd'],
+                'post_cmd': config['post_configure_cmd']
                 }
             }
 
@@ -168,7 +168,7 @@ class NodeProtocol(LineReceiver):
         stagingDir = builder.stage()
         
         dataDir = os.path.join(stagingDir, 'data')
-        tcompiler = TemplateCompiler(nodeConfig, 'templates', dataDir, config['server']['wordlist'])
+        tcompiler = TemplateCompiler(nodeConfig, 'templates', dataDir, config['wordlist'])
 
         nodeConfig = tcompiler.assign()
 
@@ -337,20 +337,20 @@ def start():
 
         
     db = NodeDB(
-        db_host=config['server']['db_host'],
+        db_host=config['db_host'],
         )
 
 
     # create the node configuration server
     nodeConfFactory = NodeConfFactory(node_db=db)
-    reactor.listenSSL(int(config['server']['port']), nodeConfFactory, contextFactory, interface=config['server']['hostname'])
+    reactor.listenSSL(int(config['port']), nodeConfFactory, contextFactory, interface=config['hostname'])
     # create the WebSocket server.
 #    webSocketFactory = WebSocketServerFactory("wss://localhost:%d" % WEBSERVER_PORT, debug=False)
 
     # Build Web and WebSocket URIs
-    hostname = config['server']['hostname']
-    web_hostname = config['server']['web_hostname']
-    web_protocol = config['server']['protocol']
+    hostname = config['hostname']
+    web_hostname = config['web_hostname']
+    web_protocol = config['protocol']
     websocket_protocol = None
 
     if web_protocol == 'http':
@@ -358,7 +358,7 @@ def start():
     else:
         websocket_protocol = 'wss'
 
-    web_port = int(config['server']['web_port'])
+    web_port = int(config['web_port'])
     port_str = ''
     if ((web_protocol == 'http') and (web_port != 80)) or ((web_protocol == 'https') and (web_port != 443)):
         port_str = ':%s' % str(web_port)
@@ -373,7 +373,7 @@ def start():
     # create the HTTP server.
     nodeHttpResource = NodeStaticResource()
     wsresource = WebSocketResource(nodeWSFactory)
-    wsresource_name = config['server']['websocket_path'][1:]
+    wsresource_name = config['websocket_path'][1:]
 
     # add the WebSocket server as a resource to the webserver
     nodeHttpResource.putChild(wsresource_name, wsresource)
@@ -381,11 +381,11 @@ def start():
     # add the form POST handlers as a resources to the webserver
     # configure node post
     nodeConfigResource = NodeConfigResource(nodeConfFactory)
-    nodeConfigResourceName = config['server']['config_post_path'][1:]
+    nodeConfigResourceName = config['config_post_path'][1:]
     nodeHttpResource.putChild(nodeConfigResourceName, nodeConfigResource)
     # get ssid post
-    getSSIDResource = GetSSIDResource(nodeConfFactory, config['server']['wordlist'])
-    getSSIDResourceName = config['server']['get_ssid_path'][1:]
+    getSSIDResource = GetSSIDResource(nodeConfFactory, config['wordlist'])
+    getSSIDResourceName = config['get_ssid_path'][1:]
     nodeHttpResource.putChild(getSSIDResourceName, getSSIDResource)
     # print sticker post
     stickerPath = 'stickers' # TODO get this from config file
@@ -395,13 +395,13 @@ def start():
 
     webServerFactory = Site(nodeHttpResource)
 
-    reactor.listenSSL(web_port, webServerFactory, contextFactory, interface=config['server']['web_hostname'])
+    reactor.listenSSL(web_port, webServerFactory, contextFactory, interface=config['web_hostname'])
 
-    service = ZeroconfService(name="sudomesh node configurator", stype=config['server']['service_type'], port=int(config['server']['port']))
+    service = ZeroconfService(name="sudomesh node configurator", stype=config['service_type'], port=int(config['port']))
 
     service.publish()
 
-    log.msg("Publishing Avahi service of type %s on port %s" % (config['server']['service_type'], str(config['server']['port'])))
+    log.msg("Publishing Avahi service of type %s on port %s" % (config['service_type'], str(config['port'])))
     log.msg("Webserver ready on %s" % web_uri);
 
     # start the servers.

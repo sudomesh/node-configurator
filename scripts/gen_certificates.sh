@@ -58,6 +58,8 @@ COUNTRY=US
 STATE=CA
 
 STARTDATE=""
+# You can use startdate to backdate the start date
+# of the generated certificates.
 #STARTDATE="-startdate 131230000001Z" # date format is YYMMDDHHMMSSZ
 
 NODECONF_DOMAIN=nodeconf.local

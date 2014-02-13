@@ -14,3 +14,4 @@ lib64
 pyvirt/**/*
 tmp/**/*
 certs/*
+config/server.json
