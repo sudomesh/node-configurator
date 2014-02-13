@@ -40,7 +40,7 @@ There are other configuration options, but you shouldn't change them as it may b
 
 ## Avahi ##
 
-You need to be running avahi. This is normally already the ase on Debian / Ubuntu. The node configurator uses Avahi to announce itself using DNS-SD.
+You need to be running avahi. This is normally already the case on Debian / Ubuntu. The node configurator uses Avahi to announce itself using DNS-SD.
 
 Avahi must be configured with the hostname nodeconf.local (this requirement should be removed in future versions).
 
@@ -60,7 +60,7 @@ Ensure that dnsmasq is enabled. The file /etc/default/dnsmasq should include the
 ENABLED=1
 ```
 
-Configure dnsmasq to give out IPs in the subnet where the node configurator is listening. E.g. if you have hostname set to 10.0.0.1" in config/server.json then you can simply add the following line to /etc/dnsmasq.conf:
+Configure dnsmasq to give out IPs in the subnet where the node configurator is listening. E.g. if you have hostname set to 10.0.0.1 in config/server.json then you can simply add the following line to /etc/dnsmasq.conf:
 
 ```
 dhcp-range=10.0.0.10,10.0.0.250
@@ -82,7 +82,7 @@ sudo /etc/init.d/dnsmasq restart
 
 ## Node database ##
 
-You need to have a running instance of the [node database](https://github.com/sudomesh/node-database). The node database is used for tracking and assigning unique static IP addresses for nodes and also keeps track of contat information for node ownwers initial passwords assigned to nodes.
+You need to have a running instance of the [node database](https://github.com/sudomesh/node-database). The node database is used for tracking and assigning unique static IP addresses for nodes and also keeps track of contact information for node owners and initial passwords assigned to nodes.
 
 If you just download and run it, it will come up on localhost port 3000.
 
@@ -150,7 +150,9 @@ For a production system, you want to ensure that the node database is kept secur
 
 To start the server, first ensure that Avahi and the node database are running, then run:
 
-  ./start_server.sh
+```
+./start_server.sh
+```
 
 # Using #
 
@@ -168,7 +170,7 @@ Once the node shows up in the left-hand panel. Click it.
 
 Now fill out the form and click "Configure node". A loading animation will appear while the node configures and a message will appear at the top of the page when the configuration has completed (whether it fails or succeeds).
 
-Your node should now be rebooting after having been suessfully configured!
+Your node should now be rebooting after having been successfully configured!
 
 # License #
 
