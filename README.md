@@ -18,7 +18,45 @@ Install the extra required python packages in a virtual python environment:
 ./scripts/install_python_prereqs
 ```
 
-You also need to download the [node database](https://github.com/sudomesh/node-database).
+You also need to download the [node database](https://github.com/sudomesh/node-database) and install the prerequisites as documented in the accompanying readme file.
+
+# Developer quick start #
+
+Read this section if you just want to be able to run both the node configurator server, node configurator client and node database on your local machine for development purposes. 
+
+## Set up and start node-configurator server ##
+
+* Make sure you read the _prerequisites_ section of this readme.
+* Copy config/server.json.dev to config/server.json
+* Run ./scripts/get_dev_certs.sh
+* Start node configurator server with ./start_server
+
+## Start the node-database ##
+
+* In a new terminal, go to the node-database dir and run ./database.js
+
+## Set up and start the node-configurator client ##
+
+* Download [the node configurator client](https://github.com/sudomesh/node-configurator-client).
+* In the node-configurator-client dir, copy config.json.example to config.json
+* Copy node-configurator/certs/ca_root.crt to node-configurator-client/ca_root.crt
+* cd into the node-configurator-client dir and run:
+
+```
+./nodeconfclient.lua --host=127.0.0.1 --port=1337 -d
+```
+
+## Access web app ##
+
+Add the following line to /etc/hosts:
+
+```
+127.0.0.1	nodeconf.local
+```
+
+Point your web browser to https://nodeconf.local:8080/
+
+Rejoice! (or be sad if it didn't work)
 
 # Setup #
 
@@ -174,4 +212,4 @@ Your node should now be rebooting after having been successfully configured!
 
 # License #
 
-This software is licensed under the GPLv3.
+This software is licensed under the AGPLv3. Talk to us if you have a good reason for needing a different license.
