@@ -1,18 +1,22 @@
 # Introduction #
 
-This is the sudo mesh node configurator. The idea is that you flash a node with the sudo mesh firmware, then run the node configurator on e.g. your laptop and connect your laptop and the flashed node to the same LAN and boot the node. The node will find the node configurator using DNS-SD, connect to the node using SSL (ensuring that the node configurator is an official authorized configurator) and ask for updates. The configurator will send one or more .ipkg files and their md5 checksums and the node will write these to /tmp, verify their checksums, install them and remove the files from /tmp. 
+This is the sudo mesh node configurator. The idea is that you flash a node with the sudo mesh firmware, then run the node configurator on e.g. your laptop and connect your laptop and the flashed node to the same LAN and boot the node. The node will find the node configurator using DNS-SD, connect to the node using SSL (ensuring that the node configurator is an official authorized configurator) and ask for updates. The configurator will send one or more .ipk files and their md5 checksums and the node will write these to /tmp, verify their checksums, install them and reboot.
 
-This is a work in progress!
+This piece of software is in an early but usable state.
 
 # Prerequisites #
 
 For a typical modern Debian / Ubuntu machine first install some prerequisites:
 
-  sudo aptitude install python avahi-daemon python-virtualenv python-pip python-openssl python-dbus python-avahi build-essential libssl-dev expect fakeroot python-dev dropbear whois
+```
+sudo aptitude install python avahi-daemon python-virtualenv python-pip python-openssl python-dbus python-avahi build-essential libssl-dev expect fakeroot python-dev dropbear whois
+```
 
 Install the extra required python packages in a virtual python environment:
 
-  ./scripts/install_python_prereqs
+```
+./scripts/install_python_prereqs
+```
 
 You also need to download the [node database](https://github.com/sudomesh/node-database).
 
@@ -22,15 +26,15 @@ You also need to download the [node database](https://github.com/sudomesh/node-d
 
 Copy config/server.json.example to config.json and edit it to suit your needs.
 
-*hostname: The hostname or ip where the node configurator server listens for node configurator client connections.
-*port: The port where the node configurator server listens for node configurator client connections.
-*web_hostname: The hostname or ip where the node configurator web server listens for web browsers to connect.
-*web_port: The port where the node configurator web server listens for web browsers to connect.
-*db_host: The hostname/IP and port (separated by a colon) where your [node database](https://github.com/sudomesh/node-database) is running.
-*wordlist: The word list used to generate wifi SSID names.
-*configure_cmd: The command to be run on the node in order to configure it after it has received the configuration from the node-configurator server. If the sub-string <file> is present, then it will be substituted by the name of the file sent to the node by the node-configurator (usually an ipk file) before being run.
-*post_configure_cmd: The command to be run on the node after successfully completing the configure_cmd successfully (usually "reboot").
-*service_type: The service type to use for node-configurator DNS-SD announcements (via Avahi).
+* hostname: The hostname or ip where the node configurator server listens for node configurator client connections.
+* port: The port where the node configurator server listens for node configurator client connections.
+* web_hostname: The hostname or ip where the node configurator web server listens for web browsers to connect.
+* web_port: The port where the node configurator web server listens for web browsers to connect.
+* db_host: The hostname/IP and port (separated by a colon) where your [node database](https://github.com/sudomesh/node-database) is running.
+* wordlist: The word list used to generate wifi SSID names.
+* configure_cmd: The command to be run on the node in order to configure it after it has received the configuration from the node-configurator server. If the sub-string <file> is present, then it will be substituted by the name of the file sent to the node by the node-configurator (usually an ipk file) before being run.
+* post_configure_cmd: The command to be run on the node after successfully completing the configure_cmd successfully (usually "reboot").
+* service_type: The service type to use for node-configurator DNS-SD announcements (via Avahi).
 
 There are other configuration options, but you shouldn't change them as it may break the code.
 
@@ -166,3 +170,6 @@ Now fill out the form and click "Configure node". A loading animation will appea
 
 Your node should now be rebooting after having been suessfully configured!
 
+# License #
+
+This software is licensed under the GPLv3.
