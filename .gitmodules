@@ -1,0 +1,3 @@
+[submodule "printing/ql570"]
+	path = printing/ql570
+	url = https://github.com/sudomesh/ql570
