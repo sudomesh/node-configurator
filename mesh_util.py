@@ -11,6 +11,7 @@ import shutil
 import urllib
 import subprocess
 import base64
+import uuid
 
 from random               import randint
 
@@ -365,9 +366,10 @@ class GetSSIDResource(Resource):
 class PrintStickerResource(Resource):
     isLeaf = True
 
-    def __init__(self, nodeConfFactory, stickerPath):
+    def __init__(self, nodeConfFactory, stickerPath, printCommand=None):
         self.stickerPath = stickerPath
         self.nodeConfFactory = nodeConfFactory
+        self.printCommand = printCommand
 
     def save_base64_png(self, image):
         if not image:
@@ -375,11 +377,17 @@ class PrintStickerResource(Resource):
         # remove the header "data:image/png;base64,"
         image = image[22:]
         decoded = base64.b64decode(image)
-        # TODO generate sticker filename from node id
-        f = open(os.path.join(self.stickerPath, 'out.png'), 'w')
+
+        filename = str(uuid.uuid4()) + ".png"
+        filepath = os.path.join(self.stickerPath, filename)
+        f = open(filepath, 'w')
         f.write(decoded)
         f.close()
-        # TODO run command to print sticker
+
+        if self.printCommand:
+            cmd = self.printCommand.replace('<file>', filepath)
+            print("Running print command: " + cmd)
+            subprocess.call(cmd, shell=True)
 
     def render_POST(self, request):
         msg_str = request.content.read()

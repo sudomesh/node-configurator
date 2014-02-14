@@ -87,6 +87,21 @@ var StickerGenerator = function(elementID, w, h) {
         return this.ctx.canvas.toDataURL('image/png');
     };
 
+    this.toRotatedDataURL = function(callback) {
+        var w = this.h;
+        var h = this.w;
+
+        var rctx = this.newContext(w, h);
+        var img = new Image();
+        img.src = this.ctx.canvas.toDataURL('image/png');
+        img.onload = function() {
+            rctx.translate(w, h / w);
+            rctx.rotate(Math.PI / 2);
+            rctx.drawImage(img, 0, 0);
+            callback(rctx.canvas.toDataURL('image/png'));
+        };
+    };
+
     this.isBrowserSupported = function() {
 	      function supportsToDataURL() {
 	          var c = document.createElement("canvas");

@@ -395,7 +395,13 @@ def start():
     nodeHttpResource.putChild(getSSIDResourceName, getSSIDResource)
     # print sticker post
     stickerPath = 'stickers' # TODO get this from config file
-    printStickerResource = PrintStickerResource(nodeConfFactory, stickerPath)
+
+    if 'sticker_print_cmd' in config:
+      printCommand = config['sticker_print_cmd']
+    else:
+      printCommand = None
+
+    printStickerResource = PrintStickerResource(nodeConfFactory, stickerPath, printCommand)
     printStickerResourceName = 'print-sticker' 
     nodeHttpResource.putChild(printStickerResourceName, printStickerResource)
 

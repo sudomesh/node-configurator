@@ -124,6 +124,29 @@ You need to have a running instance of the [node database](https://github.com/su
 
 If you just download and run it, it will come up on localhost port 3000.
 
+## Sticker printing ##
+
+You can optionally set up automated sticker printing. Currently this is only supported using the Brother QL-570 printer (because it's cheap, fast and reliable and we happened to have some easy to use Linux code that talks to it).
+
+To download the printer program, run:
+
+```
+git submodule init
+git submodule update
+```
+
+To compile the program, follow instructions in printing/ql570/
+
+To enable printing add the following line to config/server.json:
+
+```
+"sticker_print_cmd": "printing/ql570/ql570 /dev/usb/lp0 n <file>"
+```
+
+Make sure to replace /dev/usb/lp0 with your actual printer device and if you're using the wide sticker paper, replace the 'n' with 'w'. Look at the [ql570 git repository](https://github.com/sudomesh/ql570) for more info on printing options.
+
+Make sure the user running node-configurator has write access to your printer device.
+
 ## Security ##
 
 IMPORTANT: PLEASE READ THE FOLLOWING.

@@ -203,17 +203,17 @@ var NodeConf = {
         $('#btn_print_sticker').click(function(e) {
             e.stopPropagation();
             e.preventDefault();
+            this.stickerGen.toRotatedDataURL(function(dataURL) {
+                var msg = {image: dataURL};
+                
+				        $.post('/print-sticker',
+					             JSON.stringify(msg), 
+                       function(data) {
+                           console.log("sticker sent to server for printing");
+                       }, 
+                       'json');
 
-            var msg = {image: this.stickerGen.toDataURL()};
-
-				    $.post('/print-sticker',
-					         JSON.stringify(msg), 
-                   function(data) {
-                       console.log("sticker sent to server for printing");
-                   }, 
-                   'json');
-
-            return false;
+            });
         }.bind(this));
     },
 
