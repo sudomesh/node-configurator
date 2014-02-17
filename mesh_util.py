@@ -282,8 +282,8 @@ class TemplateCompiler():
         else:
             self.nodeConfig['batman_gw_mode'] = 'client'
 
-        self.nodeConfig['downstream_bw_limit'] = str(downstream)
-        self.nodeConfig['upstream_bw_limit'] = str(upstream)
+        self.nodeConfig['downstream_bw_limit'] = str(downstream)+'kbit'
+        self.nodeConfig['upstream_bw_limit'] = str(upstream)+'kbit'
 
     # compile all files in input dir
     # and put the results in the output dir
