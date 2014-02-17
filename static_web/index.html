@@ -47,8 +47,11 @@
           Download bandwidth limit: 
           <select name="downstream_bw_limit">
             <option value="0" <% if(conf.downstream_bw_limit=='0') {%>selected<%} %>>No sharing</option>
-            <option value="2048" <% if(conf.downstream_bw_limit=='2048') {%>selected<%} %>>1 Mbit/sec</option>
+            <option value="1024" <% if(conf.downstream_bw_limit=='1024') {%>selected<%} %>>1 Mbit/sec</option>
+            <option value="2048" <% if(conf.downstream_bw_limit=='2048') {%>selected<%} %>>2 Mbit/sec</option>
+            <option value="3072" <% if(conf.downstream_bw_limit=='3072') {%>selected<%} %>>3 Mbit/sec</option>
             <option value="4096" <% if(conf.downstream_bw_limit=='4096') {%>selected<%} %>>4 Mbit/sec</option>
+            <option value="6144" <% if(conf.downstream_bw_limit=='6144') {%>selected<%} %>>6 Mbit/sec</option>
             <option value="8192" <% if(conf.downstream_bw_limit=='8192') {%>selected<%} %>>8 Mbit/sec</option>
             <option value="16384" <% if(conf.downstream_bw_limit=='16384') {%>selected<%} %>>16 Mbit/sec</option>
             <option value="32768" <% if(conf.downstream_bw_limit=='32768') {%>selected<%} %>>32 Mbit/sec</option>
@@ -61,8 +64,10 @@
             <option value="0" <% if(conf.upstream_bw_limit=='0') {%>selected<%} %>>No sharing</option>
             <option value="512" <% if(conf.upstream_bw_limit=='512') {%>selected<%} %>>0.5 Mbit/sec</option>
             <option value="1024" <% if(conf.upstream_bw_limit=='1024') {%>selected<%} %>>1 Mbit/sec</option>
-            <option value="2048" <% if(conf.upstream_bw_limit=='2048') {%>selected<%} %>>1 Mbit/sec</option>
+            <option value="2048" <% if(conf.upstream_bw_limit=='2048') {%>selected<%} %>>2 Mbit/sec</option>
+            <option value="3072" <% if(conf.upstream_bw_limit=='3072') {%>selected<%} %>>3 Mbit/sec</option>
             <option value="4096" <% if(conf.upstream_bw_limit=='4096') {%>selected<%} %>>4 Mbit/sec</option>
+            <option value="6144" <% if(conf.upstream_bw_limit=='6144') {%>selected<%} %>>6 Mbit/sec</option>
             <option value="8192" <% if(conf.upstream_bw_limit=='8192') {%>selected<%} %>>8 Mbit/sec</option>
             <option value="16384" <% if(conf.upstream_bw_limit=='16384') {%>selected<%} %>>16 Mbit/sec</option>
             <option value="32768" <% if(conf.upstream_bw_limit=='32768') {%>selected<%} %>>32 Mbit/sec</option>
