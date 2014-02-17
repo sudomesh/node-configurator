@@ -12,5 +12,7 @@
   "protocol": "https",
   "websocket_path": "/websocket",
   "config_post_path": "/configure",
-  "get_ssid_path": "/get-ssid"
+  "get_ssid_path": "/get-ssid",
+
+  "sticker_print_cmd": "printing/ql570/ql570 /dev/usb/lp0 w <file>"
 }
