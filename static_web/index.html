@@ -9,7 +9,6 @@
     <!-- sweet homebrewed css. mmm... -->
     <link href="/static/css/config.css" rel="stylesheet">
 
-   
     <!-- mass-produced js from the intertubes -->
     <script type="text/javascript" src="/static/js/jquery-1.8.3.min.js"></script>
     <script type="text/javascript" src="/static/js/jquery.cookie.js"></script>
@@ -44,12 +43,37 @@
           Operator name:  <input type="text" name="operator_name" value="<%- conf.operator_name %>"><br>
           Operator email: <input type="text" name="operator_email" value="<%- conf.operator_email %>"><br>
           Operator phone: <input type="text" name="operator_phone" value="<%- conf.operator_phone %>"><br>
-          Upstream bw limit: <input type="text" name="upstream_bw_limit" value="<%- conf.upstream_bw_limit %>"> (e.g: 512 or 2048)<br>
-          Downstream bw limit: <input type="text" name="downstream_bw_limit" value="<%- conf.downstream_bw_limit %>"> (e.g: 512 or 2048)<br>
 
-          batman-adv gateway mode: <input type="text" name="batman_gw_mode" value="<%- conf.batman_gw_mode %>"> (e.g: "server 1mbit/256kbit" or "client")<br>
+          Download bandwidth limit: 
+          <select name="downstream_bw_limit">
+            <option value="0" <% if(conf.downstream_bw_limit=='0') {%>selected<%} %>>No sharing</option>
+            <option value="2048" <% if(conf.downstream_bw_limit=='2048') {%>selected<%} %>>1 Mbit/sec</option>
+            <option value="4096" <% if(conf.downstream_bw_limit=='4096') {%>selected<%} %>>4 Mbit/sec</option>
+            <option value="8192" <% if(conf.downstream_bw_limit=='8192') {%>selected<%} %>>8 Mbit/sec</option>
+            <option value="16384" <% if(conf.downstream_bw_limit=='16384') {%>selected<%} %>>16 Mbit/sec</option>
+            <option value="32768" <% if(conf.downstream_bw_limit=='32768') {%>selected<%} %>>32 Mbit/sec</option>
+            <option value="65536" <% if(conf.downstream_bw_limit=='65536') {%>selected<%} %>>64 Mbit/sec</option>
+          </select>
+          <br>
+
+          Upload bandwidth limit: 
+          <select name="upstream_bw_limit">
+            <option value="0" <% if(conf.upstream_bw_limit=='0') {%>selected<%} %>>No sharing</option>
+            <option value="512" <% if(conf.upstream_bw_limit=='512') {%>selected<%} %>>0.5 Mbit/sec</option>
+            <option value="1024" <% if(conf.upstream_bw_limit=='1024') {%>selected<%} %>>1 Mbit/sec</option>
+            <option value="2048" <% if(conf.upstream_bw_limit=='2048') {%>selected<%} %>>1 Mbit/sec</option>
+            <option value="4096" <% if(conf.upstream_bw_limit=='4096') {%>selected<%} %>>4 Mbit/sec</option>
+            <option value="8192" <% if(conf.upstream_bw_limit=='8192') {%>selected<%} %>>8 Mbit/sec</option>
+            <option value="16384" <% if(conf.upstream_bw_limit=='16384') {%>selected<%} %>>16 Mbit/sec</option>
+            <option value="32768" <% if(conf.upstream_bw_limit=='32768') {%>selected<%} %>>32 Mbit/sec</option>
+            <option value="65536" <% if(conf.upstream_bw_limit=='65536') {%>selected<%} %>>64 Mbit/sec</option>
+          </select>
+          <br>
 
           Private wifi SSID: <input id="private_wifi_ssid" type="text" name="private_wifi_ssid" value="<%- conf.private_wifi_ssid %>"> (e.g: Milliways) <button id="btn_gen_ssid">Generate</button><br>
+
+          Additional contact info: <textarea rows="5" cols="20" name="additional_contact_info"></textarea><br>
+
 
           <div id="loading" style="display:none">
             <p>Sending node configuration. Please stand by.</p>

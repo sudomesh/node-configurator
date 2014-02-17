@@ -92,7 +92,7 @@ class SSIDGenerator():
 
     # generate a friendly wifi ssid
     # with specified number of words and numbers
-    def generate(self, words=2, numbers=1):
+    def generate(self, words=2, numbers=0):
         ssid = ''
         f = open(os.path.join(self.base_path, self.wordlist))
         wordlist = f.readlines()
@@ -232,8 +232,8 @@ class TemplateCompiler():
     # assign things that haven't been assigned elsewhere
     # TODO remove hardcoded values
     def assign(self):
-        print "setting batman gatway mode"
-        self.set_batman_gateway_mode() # assigns <batman_gateway_mode>
+        print "setting bandwidth sharing limits"
+        self.set_bandwidth_limits() # assigns <batman_gateway_mode> and checks <downstream_bw_limit> and <upstream_bw_limit>
         print "generating wifi ssid"
         self.generate_wifi_ssid() # assigns <private_wifi_ssid>
         print "generating wifi key"
@@ -252,11 +252,38 @@ class TemplateCompiler():
 
         return self.nodeConfig
 
-    def set_batman_gateway_mode(self):
-        if 'batman_gw_mode' in self.nodeConfig and self.nodeConfig['batman_gw_mode'] != '':
-            return
+    def set_bandwidth_limits(self):
 
-        self.nodeConfig['batman_gw_mode'] = 'client'
+        downstream = 0
+        if 'downstream_bw_limit' in self.nodeConfig:
+            try:
+                downstream = int(self.nodeConfig['downstream_bw_limit'])
+                if downstream < 0:
+                    downstream = 0
+            except ValueError:
+                downstream = 0
+
+
+        upstream = 0
+        if 'upstream_bw_limit' in self.nodeConfig:
+            try:
+                upstream = int(self.nodeConfig['upstream_bw_limit'])
+                if upstream < 0:
+                    upstream = 0
+            except ValueError:
+                upstream = 0
+
+        if ((upstream > 0) and (downstream == 0)) or ((upstream == 0) and (downstream > 0)):
+            downstream = 0
+            upstream = 0
+
+        if (upstream > 0) or (downstream > 0):
+            self.nodeConfig['batman_gw_mode'] = "server %skbit/%skbit" % (downstream, upstream)
+        else:
+            self.nodeConfig['batman_gw_mode'] = 'client'
+
+        self.nodeConfig['downstream_bw_limit'] = str(downstream)
+        self.nodeConfig['upstream_bw_limit'] = str(upstream)
 
     # compile all files in input dir
     # and put the results in the output dir
