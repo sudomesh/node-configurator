@@ -247,7 +247,10 @@ var NodeConf = {
             $('#flash')[0].innerHTML += "<p>Generating sticker.</p>";
             
             this.stickerGen.draw(msg.node_config);
+            $('#btn_print_sticker').removeAttr("disabled");
             $('#flash')[0].innerHTML += "<p>root password (not included on sticker) is: "+msg.node_config.root_password+"</p>";
+
+            $('#flash')[0].innerHTML += "<p>You can now print the sticker.</p>";
         } else {
             $('#flash')[0].innerHTML += "<p>Node configuration was not received. Cannot generate sticker :(</p>";
         }
