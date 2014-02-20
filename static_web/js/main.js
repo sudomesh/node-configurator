@@ -188,6 +188,7 @@ var NodeConf = {
         $('#btn_gen_ssid').click(function(e) {
             e.stopPropagation();
             e.preventDefault();
+
             $.post('/get-ssid', function(data, textStatus) {
                 var msg = JSON.parse(data);
                 if(msg.status != 'success') {
@@ -276,6 +277,18 @@ var NodeConf = {
         }
         if(this.nodes.length <= 0) {
             $('#node_list').html("<p>No nodes connected.<p>");
+        }
+    },
+
+    debug: {
+        sticker: function() {
+            $('#right_pane').html('<canvas id="stickerDebug" width="112" height="291" style="border:1px solid black"></canvas>');
+            var stickerGen = new StickerGenerator(336, 873, 'stickerDebug');
+            stickerGen.draw({
+                private_wifi_ssid: 'testnet',
+                private_wifi_key: 'IliL1oO0!',
+                user_password: 'e0aAI4!u2O'
+            });
         }
     }
 };

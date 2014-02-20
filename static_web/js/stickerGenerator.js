@@ -74,10 +74,10 @@ var StickerGenerator = function(elementID, w, h) {
         this.drawLine(ctx, "h.sudomesh.org", true);
     };
 
-    this.drawLine = function(ctx, text, bold) {
-        var offset = this.curLine * 42 + 50;
+    this.drawLine = function(ctx, text, strong) {
+        var offset = this.curLine * 42 + 45;
 	      var middle = this.w / 2;
-	      ctx.font = (bold ? 'bold ' : '') + '31px sans-serif' 
+	      ctx.font = (strong ? 'bold ' : '') + '35px ' + (strong ? 'monospace' : 'sans-serif')
         ctx.textAlign = 'center';
 	      ctx.fillText(text, middle, offset);
         this.curLine++;
