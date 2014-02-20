@@ -1,5 +1,5 @@
 
-config broker
+config broker 'main'
 	list address '<relay_node_inet_ipv4_addr>:8942'
 	option uuid '<id>'
 	option interface 'l2tp0'
