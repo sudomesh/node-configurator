@@ -169,7 +169,8 @@ class NodeProtocol(LineReceiver):
         stagingDir = builder.stage()
         print "initializing template compiler"
         dataDir = os.path.join(stagingDir, 'data')
-        tcompiler = TemplateCompiler(nodeConfig, 'templates', dataDir, config['wordlist'])
+        controlDir = os.path.join(stagingDir, 'control')
+        tcompiler = TemplateCompiler(nodeConfig, 'templates', dataDir, 'postscripts', controlDir, config['wordlist'])
 
         print "running template compiler assign"
         nodeConfig = tcompiler.assign()
@@ -189,7 +190,7 @@ class NodeProtocol(LineReceiver):
 
         print "building ipk"
         ipk_file_path = builder.build()
-        builder.clean()
+#        builder.clean()
 
         # Step 3: Send the IPK to the node
 

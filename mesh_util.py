@@ -21,7 +21,7 @@ from twisted.web.http_headers import Headers
 
 
 # kinda ugly to use httplib when we're also using twisted
-# but twisted http requests are rediculously overcomplicated
+# but it avoids complication
 import httplib
 
 #from http_request import httpRequest
@@ -113,7 +113,7 @@ class SSIDGenerator():
 
 class TemplateCompiler():
 
-    def __init__(self, nodeConfig, inputDir, outputDir, wordlist):
+    def __init__(self, nodeConfig, inputDir, outputDir, postscriptDir, controlDir, wordlist):
         self.nodeConfig = nodeConfig
         self.base_path = os.getcwd()
         self.inputDir = inputDir
@@ -124,6 +124,13 @@ class TemplateCompiler():
         if not os.path.isabs(self.outputDir):
             self.outputDir = os.path.join(self.base_path, self.outputDir)
 
+        self.postscriptDir = postscriptDir
+        if not os.path.isabs(self.postscriptDir):
+            self.postscriptDir = os.path.join(self.base_path, self.postscriptDir)
+
+        self.controlDir = controlDir
+        if not os.path.isabs(self.controlDir):
+            self.controlDir = os.path.join(self.base_path, self.controlDir)
 
     # writes data to file at path
     # if either file or any dirs that are part of path
@@ -165,6 +172,8 @@ class TemplateCompiler():
         if re.match("^#.*#$", filename):
             return True
         if filename == 'README':
+            return True
+        if filename == 'PLACEHOLDER':
             return True
         return False
 
@@ -307,6 +316,26 @@ class TemplateCompiler():
                 self.write_file(outpath, compiled, mode)
         os.chdir(self.base_path)
 
+        self.compile_postscripts()
+
+    def compile_postscripts(self):
+        
+        postdata = "#!/bin/sh"
+        os.chdir(self.postscriptDir);
+        for root, dirs, files in os.walk('.'):
+            for curfile in files:
+                if self.should_skip(curfile) == True:
+                    continue
+                inpath = os.path.join(root, curfile)
+                postdata += "\n##BEGIN "+curfile+"##\n"
+                f = open(inpath, 'r')
+                template = f.read()
+                postdata += self.compile_data(template)
+                f.close()
+                postdata += "\n##END "+curfile+"##\n"
+
+        outpath = os.path.join(self.controlDir, 'postinst')
+        self.write_file(outpath, postdata, 33261)
 
 class IPKBuilder():
 
@@ -332,7 +361,7 @@ class IPKBuilder():
 
         os.mkdir("control")
         shutil.copy("../../ipk_files/control", "control/")
-        shutil.copy("../../ipk_files/postinst", "control/")
+#        shutil.copy("../../ipk_files/postinst", "control/")
 
         os.mkdir("data")
         os.chdir("data")

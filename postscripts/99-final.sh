@@ -1,4 +1,3 @@
-#!/bin/sh
 
 /etc/init.d/nodeconf_client disable
 /etc/init.d/tunneldigger enable
