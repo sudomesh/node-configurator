@@ -203,7 +203,10 @@ class NodeProtocol(LineReceiver):
         mac = EUI(mac_addr)
         if not mac:
             return None
-        reg = mac.oui.registration()
+        try:
+            reg = mac.oui.registration()
+        except:
+            return None
         if not reg:
             return None
         return reg.org
