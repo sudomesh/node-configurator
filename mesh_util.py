@@ -361,7 +361,6 @@ class IPKBuilder():
 
         os.mkdir("control")
         shutil.copy("../../ipk_files/control", "control/")
-#        shutil.copy("../../ipk_files/postinst", "control/")
 
         os.mkdir("data")
         os.chdir("data")
