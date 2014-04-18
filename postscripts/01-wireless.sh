@@ -4,7 +4,7 @@
 # http://wiki.openwrt.org/doc/uci/wireless
 
 uci set wireless.@wifi-device[0].htmode='HT40+'
-uci set wireless.@wifi-device[0].channel=161
+uci set wireless.@wifi-device[0].channel=157
 uci delete wireless.@wifi-device[0].disabled
 
 uci delete wireless.@wifi-iface[0]
