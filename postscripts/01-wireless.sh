@@ -3,8 +3,20 @@
 # http://wiki.openwrt.org/doc/uci
 # http://wiki.openwrt.org/doc/uci/wireless
 
-uci set wireless.@wifi-device[0].htmode='HT40+'
-uci set wireless.@wifi-device[0].channel=157
+HWMODE=$(uci get wireless.radio0.hwmode)
+
+if [ HWMODE = "11na" ] then
+  # set 40 mhz channel starting at 157 for 5 ghz 802.11n gear
+  uci set wireless.@wifi-device[0].htmode='HT40+'
+  uci set wireless.@wifi-device[0].channel=157
+elif [ HWMODE = "11a" ] then
+  # set channel 3 for 2.4 ghz gear
+  uci set wireless.@wifi-device[0].channel=157
+else
+  # set channel 3 for 2.4 ghz gear
+  uci set wireless.@wifi-device[0].channel=3
+fi
+
 uci delete wireless.@wifi-device[0].disabled
 
 uci delete wireless.@wifi-iface[0]
