@@ -323,6 +323,7 @@ class TemplateCompiler():
         postdata = "#!/bin/sh"
         os.chdir(self.postscriptDir);
         for root, dirs, files in os.walk('.'):
+            files.sort()
             for curfile in files:
                 if self.should_skip(curfile) == True:
                     continue
