@@ -136,13 +136,18 @@ class NodeProtocol(LineReceiver):
         # send the message
         msg_str = json.dumps(msg)
         self.sendLine(msg_str)
+        print "-------- ||| Writing --------"
+        sent_len = 0
         # send the file
         while True:
             data = f.read(8192)
             if data == '':
                 break
             self.transport.write(data)
+            sent_len = sent_len + len(data)
+            print "===== Sent: " + str(sent_len)
         f.close()
+        print "--------- Done writing -----------"
 
 #        self.transport.loseConnection()
 
@@ -242,9 +247,9 @@ class NodeProtocol(LineReceiver):
     def lineReceived(self, line):
         self.parseMessage(line)
 
-    def rawDataReceived(self, data):
-        "As soon as any data is received, write it back."
-        self.transport.write(data)
+#    def rawDataReceived(self, data):
+#        "As soon as any data is received, write it back."
+#        self.transport.write(data)
 
 class NodeConfFactory(protocol.Factory):
 

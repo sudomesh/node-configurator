@@ -5,11 +5,11 @@
 
 HWMODE=$(uci get wireless.radio0.hwmode)
 
-if [ HWMODE = "11na" ] then
+if [ HWMODE == "11na" ]; then
   # set 40 mhz channel starting at 157 for 5 ghz 802.11n gear
   uci set wireless.@wifi-device[0].htmode='HT40+'
   uci set wireless.@wifi-device[0].channel=157
-elif [ HWMODE = "11a" ] then
+elif [ HWMODE == "11a" ]; then
   # set channel 3 for 2.4 ghz gear
   uci set wireless.@wifi-device[0].channel=157
 else
@@ -19,7 +19,18 @@ fi
 
 uci delete wireless.@wifi-device[0].disabled
 
+# delete up to 10 ifaces
 uci delete wireless.@wifi-iface[0]
+uci delete wireless.@wifi-iface[0]
+uci delete wireless.@wifi-iface[0]
+uci delete wireless.@wifi-iface[0]
+uci delete wireless.@wifi-iface[0]
+uci delete wireless.@wifi-iface[0]
+uci delete wireless.@wifi-iface[0]
+uci delete wireless.@wifi-iface[0]
+uci delete wireless.@wifi-iface[0]
+uci delete wireless.@wifi-iface[0]
+
 uci add wireless wifi-iface
 uci set wireless.@wifi-iface[0].device='radio0'
 uci set wireless.@wifi-iface[0].ifname='open0'

@@ -33,7 +33,6 @@ start() {
     iptables -P FORWARD ACCEPT
     iptables -t nat -F POSTROUTING
 
-
     # Enable IP masquerading for ethernet output (NAT)
     iptables -t nat -A POSTROUTING -o $ETH -j MASQUERADE
     echo 1 > /proc/sys/net/ipv4/ip_forward
@@ -98,7 +97,6 @@ start() {
     iptables -A FORWARD -i $TUN -o $ETH -j DROP
 
     iptables -P FORWARD DROP
-    #iptables -P FORWARD ACCEPT
 
     # no internet to internet forward
     iptables -A FORWARD -i $ETH -o $ETH -j DROP
@@ -106,6 +104,8 @@ start() {
     # TODO: What about non-IP traffic? 
 
     # default route for 'public' table is the exit node
+    ## TODO this may be the problem
+    ##      since BRIDGE is specified as device
     ip route add default via $EXITIP dev $BRIDGE table public
 
     # add standard route for bridge interface to public table
@@ -120,27 +120,6 @@ start() {
     ip rule add from $MESHNET iif $BRIDGE prio 16000 table public
 
     ip route flush cache 
-
-# ---- OLD STUFF START
-    # add a default route for internet traffic from the mesh / open ap
-#    ip route add default via $EXITIP dev $BRIDGE table public
-
-    # all traffic on the subnet owned by this node stays local
-#    ip rule add from $NODENET to $NODENET dev $BRIDGE prio 16950 table main
-
-    # all traffic between the local node's mesh/open and the local node's priv stays local
-#    ip rule add from $NODENET to $PRIVNET dev $BRIDGE prio 16950 table main
-
-    # all other 10.x.x.x traffic from open/mesh interfaces goes through tunnel
-#    ip rule add from $MESHNET dev $BRIDGE prio 17000 table public
-
-    #  TODO: What about normal mesh traffic? Maybe the public table needs some more rules.
-    #  We should test if normal mesh traffic between nodes is affected by this script.
-
-#    ip route flush cache 
-
-# ---- OLD STUFF END
-
 }
 
 stop() {
