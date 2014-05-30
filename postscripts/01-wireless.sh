@@ -17,19 +17,19 @@ else
   uci set wireless.@wifi-device[0].channel=3
 fi
 
-uci delete wireless.@wifi-device[0].disabled
+uci -q delete wireless.@wifi-device[0].disabled || true
 
 # delete up to 10 ifaces
-uci delete wireless.@wifi-iface[0]
-uci delete wireless.@wifi-iface[0]
-uci delete wireless.@wifi-iface[0]
-uci delete wireless.@wifi-iface[0]
-uci delete wireless.@wifi-iface[0]
-uci delete wireless.@wifi-iface[0]
-uci delete wireless.@wifi-iface[0]
-uci delete wireless.@wifi-iface[0]
-uci delete wireless.@wifi-iface[0]
-uci delete wireless.@wifi-iface[0]
+uci -q delete wireless.@wifi-iface[0] || true
+uci -q delete wireless.@wifi-iface[0] || true
+uci -q delete wireless.@wifi-iface[0] || true
+uci -q delete wireless.@wifi-iface[0] || true
+uci -q delete wireless.@wifi-iface[0] || true
+uci -q delete wireless.@wifi-iface[0] || true
+uci -q delete wireless.@wifi-iface[0] || true
+uci -q delete wireless.@wifi-iface[0] || true
+uci -q delete wireless.@wifi-iface[0] || true
+uci -q delete wireless.@wifi-iface[0] || true
 
 uci add wireless wifi-iface
 uci set wireless.@wifi-iface[0].device='radio0'
@@ -57,4 +57,4 @@ uci set wireless.@wifi-iface[2].network='priv'
 uci set wireless.@wifi-iface[2].mode='ap'
 uci set wireless.@wifi-iface[2].ssid='<private_wifi_ssid>'
 
-uci commit wireless
+uci -f commit wireless || true
