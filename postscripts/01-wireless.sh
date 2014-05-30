@@ -31,7 +31,7 @@ uci -q delete wireless.@wifi-iface[0] || true
 uci -q delete wireless.@wifi-iface[0] || true
 uci -q delete wireless.@wifi-iface[0] || true
 
-uci add wireless wifi-iface
+uci -q add wireless wifi-iface
 uci set wireless.@wifi-iface[0].device='radio0'
 uci set wireless.@wifi-iface[0].ifname='open0'
 uci set wireless.@wifi-iface[0].encryption='none'
@@ -39,7 +39,7 @@ uci set wireless.@wifi-iface[0].network='openmesh'
 uci set wireless.@wifi-iface[0].mode='ap'
 uci set wireless.@wifi-iface[0].ssid='peoplesopen.net'
 
-uci add wireless wifi-iface
+uci -q add wireless wifi-iface
 uci set wireless.@wifi-iface[1].device='radio0'
 uci set wireless.@wifi-iface[1].ifname='adhoc0'
 uci set wireless.@wifi-iface[1].encryption='none'
@@ -48,7 +48,7 @@ uci set wireless.@wifi-iface[1].mode='adhoc'
 uci set wireless.@wifi-iface[1].bssid='CA:FE:C0:DE:F0:0D'
 uci set wireless.@wifi-iface[1].ssid='pplsopen.net-node2node'
 
-uci add wireless wifi-iface
+uci -q add wireless wifi-iface
 uci set wireless.@wifi-iface[2].device='radio0'
 uci set wireless.@wifi-iface[2].ifname='priv0'
 uci set wireless.@wifi-iface[2].encryption='psk2'
@@ -57,4 +57,4 @@ uci set wireless.@wifi-iface[2].network='priv'
 uci set wireless.@wifi-iface[2].mode='ap'
 uci set wireless.@wifi-iface[2].ssid='<private_wifi_ssid>'
 
-uci -f commit wireless || true
+uci -q commit || true
