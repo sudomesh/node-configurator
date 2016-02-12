@@ -1,3 +1,8 @@
+
+
+THIS PROJECT HAS BEEN REPLACED BY [makenode](https://github.com/sudomesh/makenode) AND IS NO LONGER MAINTAINED
+
+
 # Introduction #
 
 This is the sudo mesh node configurator. The idea is that you flash a node with the sudo mesh firmware, then run the node configurator on e.g. your laptop and connect your laptop and the flashed node to the same LAN and boot the node. The node will find the node configurator using DNS-SD, connect to the node using SSL (ensuring that the node configurator is an official authorized configurator) and ask for updates. The configurator will send one or more .ipk files and their md5 checksums and the node will write these to /tmp, verify their checksums, install them and reboot.
